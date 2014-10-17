@@ -1,0 +1,35 @@
+{
+  "name": "qlogger",
+  "version": "0.0.1",
+  "description": "quick logger and newline delimited data transport",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/andrasq/qlogger"
+  },
+  "main": "index.js",
+  "author": {
+    "name": "Andras",
+    "url": "http://github.com/andrasq"
+  },
+  "engines": {
+    "node": ">=0.0.0"
+  },
+  "scripts": {
+    "test": "nodeunit"
+  },
+  "keywords": [
+    "quick",
+    "logging",
+    "newline",
+    "delimited",
+    "text",
+    "data",
+    "transport"
+  ],
+  "dependencies": {
+  },
+  "devDependencies": {
+    "nodeunit": "*"
+  }
+}
