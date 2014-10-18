@@ -1,7 +1,17 @@
 qlogger
 =======
 
-quick nodejs logger and newline delimited data transport
+quick configurable nodejs logger and newline delimited data transport
+
+QLogger is a very lean, very configurable logger and data transport agent.  At
+its most basic level, it sends newline-delimited strings to the writers.  On
+my system I get 400k 200 byte lines logged per second to a shared, mutexed
+logfile (for unfiltered data transport, see also [qfputs](https://www.npmjs.org/package/qfputs)).
+
+Writers can be added to write to file, send over TCP/IP, send to syslog, etc.
+The strings can be modified in flight by filters, which will write the altered
+string.  Common filters would be to add a timestap and the message loglevel.
+Writers and filters must be configured explicitly, there is no default.
 
 QLogger exports a simplified subset of the traditional logging methods:
 error, info, and debug.  Each log message is appended to the logfile
@@ -42,10 +52,11 @@ standard unix syslog loglevels 3, 6 and 7.  The higher syslog logging levels
 leaving just the three essential message classes:  human attention required,
 useful statistics, and everything available for debugging.
 
-WriterSpec may be a writerObject (see below), or a writer specification
-string to use one of the built-in writers.  If no writerSpec is given,
-the logger will be created without a writer.  It is an error if the
-writer specification is not recognized.  The built-in writers are:
+The optional WriterSpec may be a writerObject (see addWriter below), or a
+writer specification string.  The latter will create one of the built-in
+writers.  If no writerSpec is given, the logger will be created without a
+writer.  It is an error if the writer specification is not recognized.  The
+built-in writers are:
 
         file://</path/to/file>          // absolute filepath
         file://<file/name>              // relative filename
@@ -56,11 +67,11 @@ writer specification is not recognized.  The built-in writers are:
 
 ### addWriter( writerObject )
 
-Have the logger write log messages with this object.  The object must
-have a method `write( string, callback )`.  The writer will be called
-with the already formatted log line.  Multiple writers are supported.
-Writes are started in the order added, but are not serialized, and may
-complete out of order.
+Have the logger write log messages with this object.  The writerObject must
+have a method `write( string, callback )`.  The writer will be called with the
+already formatted log line.  Multiple writers are supported.  Writers are run
+in the order added, but are not serialized, and writers may complete out of
+order.
 
 ### addFilter( filterFunction( message, loglevel ) )
 
