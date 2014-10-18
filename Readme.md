@@ -46,6 +46,7 @@ WriterSpec may be a writerObject (see below), or a writer specification
 string to use one of the built-in writers.  If no writerSpec is given,
 the logger will be created without a writer.  It is an error if the
 writer specification is not recognized.  The built-in writers are:
+
         file://</path/to/file>          // absolute filepath
         file://<file/name>              // relative filename
         stdout://                       // process.stdout
@@ -53,21 +54,20 @@ writer specification is not recognized.  The built-in writers are:
         tcp://<host>:<port>             // tcp connection
         udp://<host>:<port>             // datagram
 
-Note: for file:// writers to work, Fputs.FileWriter must be available from the
-[qfputs](https://www.npmjs.org/package/qfputs) package.  Qlogger does not
-(yet) drag in the dependency automatically.
-
 ### addWriter( writerObject )
 
 Have the logger write log messages with this object.  The object must
 have a method `write( string, callback )`.  The writer will be called
 with the already formatted log line.  Multiple writers are supported.
+Writes are started in the order added, but are not serialized, and may
+complete out of order.
 
 ### addFilter( filterFunction( message, loglevel ) )
 
-Filter the log message before writing it.  The only message filtering
-built in is to make sure that the message ends in a newline.  Each
-filter is free to modify the log message before
+Filter the log message before writing it, and return the filtered string.  The
+only message filtering built in is to make sure that the message ends in a
+newline.  Each filter is free to modify the log message about to be written.
+Filters are applied in the order they were added.
 
 By using filters it is possible to daisy-chain loggers so messages are
 observed and logged to multiple locations.
