@@ -1,6 +1,6 @@
 {
   "name": "qlogger",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "quick logger and newline delimited data transport",
   "license": "Apache-2.0",
   "repository": {
@@ -19,6 +19,7 @@
     "test": "nodeunit"
   },
   "keywords": [
+    "Andras",
     "quick",
     "logging",
     "newline",
@@ -28,6 +29,7 @@
     "transport"
   ],
   "dependencies": {
+    "qfputs": "*"
   },
   "devDependencies": {
     "nodeunit": "*"
