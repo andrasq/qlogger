@@ -56,7 +56,12 @@ The optional WriterSpec may be a writerObject (see addWriter below), or a
 writer specification string.  The latter will create one of the built-in
 writers.  If no writerSpec is given, the logger will be created without a
 writer.  It is an error if the writer specification is not recognized.  The
-built-in writers are:
+built-in writers are those supported by QLogger.createWriter() (see below):
+
+### QLogger.createWriter( writerSpec )
+
+This class method will create a new writer corresponding to the spec.
+The recognized writer specifications are:
 
         file://</path/to/file>          // absolute filepath
         file://<file/name>              // relative filename
@@ -64,6 +69,13 @@ built-in writers are:
         stderr://                       // process.stderr
         tcp://<host>:<port>             // tcp connection
         udp://<host>:<port>             // datagram
+
+### loglevel( [newLoglevel] )
+
+returns the current loglevel.  The loglevel controls the log sensitivity; a
+loglevel of 'info' would write info() and error() messages but not debug().
+If a new loglevel is specified, the logger will change the loglevel and
+returns the old loglevel.
 
 ### addWriter( writerObject )
 

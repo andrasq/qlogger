@@ -54,6 +54,19 @@ module.exports = {
             t.equal("hello\n", this.lines2[0]);
             t.done();
         },
+
+        'should return loglevel ': function(t) {
+            var level = this.logger.loglevel();
+            t.equal(QLogger.LOGLEVELS['info'], level);
+            t.done();
+        },
+
+        'should set loglevel': function(t) {
+            var oldlevel = this.logger.loglevel('error');
+            var newlevel = this.logger.loglevel();
+            t.equal(QLogger.LOGLEVELS['error'], newlevel);
+            t.done();
+        },
     },
 
     'writers': {
