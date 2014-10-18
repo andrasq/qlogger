@@ -22,7 +22,7 @@ Points to keep in mind for general-purpose data transport logfiles:
 
         QLogger = require('qlogger');
         logger = new QLogger('info');
-   	logger.addFilter(
+            logger.addFilter(
             function(msg, loglevel) {
                 return new Date().toISOString() + " [" + QLogger.LEVELNAMES[loglevel]+ "] " + msg;
             }
