@@ -8,6 +8,14 @@ its most basic level, it sends newline-delimited strings to the writers.  On
 my system I get 400k 200 byte lines logged per second to a shared, mutexed
 logfile (for unfiltered data transport, see also [qfputs](https://www.npmjs.org/package/qfputs)).
 
+### Installation
+
+        npm install qlogger
+
+or clone the repo, `git clone https://github.com/andrasq/qlogger`
+
+### Description
+
 Writers can be added to write to file, send over TCP/IP, send to syslog, etc.
 The strings can be modified in flight by filters, which will write the altered
 string.  Common filters would be to add a timestap and the message loglevel.
@@ -31,26 +39,31 @@ Points to keep in mind for general-purpose data transport logfiles:
     the logfile reopen interval should be pretty short
 
         QLogger = require('qlogger');
-        logger = new QLogger('info');
+        logger = new QLogger('info', process.stdout);
         logger.addFilter(
             function(msg, loglevel) {
                 return new Date().toISOString() + " [" + QLogger.LEVELNAMES[loglevel]+ "] " + msg;
             }
         );
-        logger.addWriter(process.stdout);
         logger.info("Hello, world.");
         logger.error("Done.");
         logger.debug("debug messages not enabled");
+        // => 2014-10-18T12:34:56.667Z [info] Hello, world.
+        // => 2014-10-18T12:34:56.668Z [error] Done.
+        // => 
 
-### QLogger( loglevel, [writerSpec] )
+### QLogger( [loglevel], [writerSpec] )
 
 Create a logger that will log messages of importance loglevel or above.  It is
-an error if the loglevel is not recognized.  Loglevel can be specified as a
-string 'error', 'info' or 'debug'.  Internally, they are converted to the
-standard unix syslog loglevels 3, 6 and 7.  The higher syslog logging levels
-(emerg, alert, and crit) and warning and notice were deliberately omitted,
-leaving just the three essential message classes:  human attention required,
-useful statistics, and everything available for debugging.
+an error if the loglevel is not recognized.
+
+Loglevel can be specified as a string 'error', 'info' or 'debug'.  If
+omitted, it defaults to 'info'.  Internally, they are converted to the
+standard unix syslog loglevels 3, 6 and 7.  The higher syslog logging
+levels (emerg, alert, and crit) and warning and notice were deliberately
+omitted, leaving just the three essential message classes:  human
+attention required, useful statistics, and everything available for
+debugging.
 
 The optional WriterSpec may be a writerObject (see addWriter below), or a
 writer specification string.  The latter will create one of the built-in
