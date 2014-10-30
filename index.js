@@ -1,1 +1,1 @@
-module.exports = require('./lib/qlogger');
+module.exports = require('./lib/qlogger.js');

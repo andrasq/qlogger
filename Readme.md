@@ -108,6 +108,34 @@ Filters are applied in the order they were added.
 By using filters it is possible to daisy-chain loggers so messages are
 observed and logged to multiple locations.
 
+Two very simple filters are built in; each adds a timestamp and the loglevel.
+filterBasic() produces a plaintext logline, the json filter a json bundle
+with fields "time", "level" and "message".  The json filter can log text or
+objects, and can merge fields from a static template object into each logline.
+The standard fields "time", "level" and "message" in the template object are
+overwritten with the run-time values; this can be used to control the order
+of the fields in the output.
+
+        var filterBasic = require('qlogger/filters').filterBasic;
+        logger.addFilter(filterBasic);
+        logger.info("Hello, world.")
+        // 2014-10-19 01:23:45.678 [info] Hello, world.
+
+and
+
+        var JsonFilter = require('qlogger/filters').JsonFilter;
+        var loglineTemplate = {
+            time: 'overwrite',
+            level: 'overwrite',
+            hostname: 'local.host',
+            custom1: 123,
+            message: 'overwrite'
+        };
+        jsonFilter = JsonFilter.makeFilter(loglineTemplate);
+        logger.addFilter(jsonFilter);
+        logger.info("Hello, world.");
+        // {"time":1414627805981,"level":"info","hostname":"local.host","custom1":123,"message":"Hello, world."}
+
 ### error( message )
 
 Log an error message.  Error messages will be logged by all loglevels,
