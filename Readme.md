@@ -38,6 +38,8 @@ Points to keep in mind for general-purpose data transport logfiles:
   - the logfile could be used for high-speed low-latency buffering, so
     the logfile reopen interval should be pretty short
 
+### Example
+
         QLogger = require('qlogger');
         logger = new QLogger('info', process.stdout);
         logger.addFilter(
@@ -52,7 +54,7 @@ Points to keep in mind for general-purpose data transport logfiles:
         // => 2014-10-18T12:34:56.668Z [error] Done.
         // => 
 
-### QLogger( [loglevel], [writerSpec] )
+### new QLogger( [loglevel], [writerSpec] )
 
 Create a logger that will log messages of importance loglevel or above.  It is
 an error if the loglevel is not recognized.
@@ -125,16 +127,18 @@ and
 
         var JsonFilter = require('qlogger/filters').JsonFilter;
         var loglineTemplate = {
+            // the template defines the basic set of fields to log
+            // and the order they will appear in.  If logging objects,
+            // any additional fields from the object will be appended.
             time: 'overwrite',
             level: 'overwrite',
-            hostname: 'local.host',
             custom1: 123,
             message: 'overwrite'
         };
-        jsonFilter = JsonFilter.makeFilter(loglineTemplate);
-        logger.addFilter(jsonFilter);
+        filterJson = JsonFilter.makeFilter(loglineTemplate);
+        logger.addFilter(filterJson);
         logger.info("Hello, world.");
-        // {"time":1414627805981,"level":"info","hostname":"local.host","custom1":123,"message":"Hello, world."}
+        // {"time":1414627805981,"level":"info","custom1":123,"message":"Hello, world."}
 
 ### error( message )
 
