@@ -170,4 +170,30 @@ module.exports = {
             t.done();
         }
     },
+
+    'speed': {
+        'log 100k lines with no-op writer': function(t) {
+            this.logger.addWriter({write: function(data, cb){ cb(); }});
+            for (var i=0; i<100000; i++) this.logger.info("Hello, world.\n");
+            this.logger.fflush(function(){
+                t.done();
+            });
+        },
+
+        'log 100k lines with /dev/null FileWriter': function(t) {
+            this.logger.addWriter(QLogger.createWriter('file:///dev/null'));
+            for (var i=0; i<100000; i++) this.logger.info("Hello, world.\n");
+            this.logger.fflush(function(){
+                t.done();
+            });
+        },
+
+        'log 1k lines with /dev/null writeStream': function(t) {
+            this.logger.addWriter(fs.createWriteStream('/dev/null', {flags: 'a', highWaterMark: 4096}));
+            for (var i=0; i<1000; i++) this.logger.info("Hello, world.\n");
+            this.logger.fflush(function(){
+                t.done();
+            });
+        },
+    },
 };
