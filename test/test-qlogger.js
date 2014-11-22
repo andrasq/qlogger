@@ -5,6 +5,8 @@
 
 fs = require('fs');
 QLogger = require('../index');
+filterBasic = require('../filters').filterBasic;
+filterJson = (require('../filters')).JsonFilter.makeFilter({})
 
 module.exports = {
     setUp: function(done) {
@@ -94,15 +96,21 @@ module.exports = {
         },
 
         'should create tcp:// writer': function(t) {
-            var writer = QLogger.createWriter('tcp://ramnode.com:80');
-            t.ok(writer);
-            // tcp sockets are closed with 'end'
-            writer.end();
-            t.done();
+            t.expect(1);
+            var writer = QLogger.createWriter('tcp://localhost:80');
+            writer.on('error', function() {
+                t.ok(false, "no localhost http server, unable to test tcp");
+                t.done();
+            });
+            writer.on('connect', function() {
+                writer.end();
+                t.ok(writer);
+                t.done();
+            });
         },
 
         'should create udp:// writer': function(t) {
-            var writer = QLogger.createWriter('udp://ramnode.com:80');
+            var writer = QLogger.createWriter('udp://localhost:80');
             t.ok(writer);
             // udp sockets are closed with 'close'
             writer.close();
@@ -188,9 +196,29 @@ module.exports = {
             });
         },
 
-        'log 1k lines with /dev/null writeStream': function(t) {
-            this.logger.addWriter(fs.createWriteStream('/dev/null', {flags: 'a', highWaterMark: 4096}));
-            for (var i=0; i<1000; i++) this.logger.info("Hello, world.\n");
+        'log 10k lines with /dev/null FileWriter basicFilter': function(t) {
+            this.logger.addWriter(QLogger.createWriter('file:///dev/null'));
+            this.logger.addFilter(filterBasic);
+            for (var i=0; i<10000; i++) this.logger.info("Hello, world.\n");
+            this.logger.fflush(function(){
+                t.done();
+            });
+        },
+
+        'log 10k lines with /tmp/nodeunit.tmp FileWriter basicFilter': function(t) {
+            this.logger.addWriter(QLogger.createWriter('file:///tmp/nodeunit.tmp'));
+            this.logger.addFilter(filterBasic);
+            for (var i=0; i<10000; i++) this.logger.info("Hello, world.\n");
+            this.logger.fflush(function(){
+                t.done();
+                fs.unlinkSync('/tmp/nodeunit.tmp');
+            });
+        },
+
+        'log 10k lines with /dev/null writeStream basicFilter': function(t) {
+            this.logger.addWriter(fs.createWriteStream('/dev/null', {flags: 'a'}));
+            this.logger.addFilter(filterBasic);
+            for (var i=0; i<10000; i++) this.logger.info("Hello, world.\n");
             this.logger.fflush(function(){
                 t.done();
             });
