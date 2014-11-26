@@ -1,0 +1,11 @@
+1.2.1
+- introduced warning() logging method
+
+1.2.0
+- expose filterIsoDate and filterIsoDateUtc timestamp formatters
+
+1.1.0
+- introduced filterBasic and JsonFilter
+
+1.0.0
+- initial version with info/debug/error, createWriter() and loglevel()

@@ -48,4 +48,18 @@ module.exports = {
         assert.equal(msg, '2001-01-23 17:34:56');
         t.done();
     },
+
+    'speed': {
+        'format 100k timestamps': function(t) {
+            var i;
+            for (i=0; i<100000; i++) formatIsoDate(980271296000);
+            t.done();
+        },
+
+        'format 100k Date.toString': function(t) {
+            var i;
+            for (i=0; i<100000; i++) new Date(980271296000).toString();
+            t.done();
+        },
+    },
 };

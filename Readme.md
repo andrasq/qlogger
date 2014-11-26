@@ -226,6 +226,7 @@ and the logelevel.
 `filterJson()` logs a stringified json bundle that will always have fields
 "time", "level" and "message".  The time is a millisecond timestamp.  Other
 fields are copied from the message object being logged (unless a string).
+filterJson is constructed by the JsonFilter class.
 
 The json filter can merge fields from a static template into each logline.
 The logged bundle fields will contain the template fields, the standard
@@ -249,12 +250,48 @@ output.
             time: 'provide',
             level: 'provide',
             custom1: 123,
-            message: will 'provide'
+            message: 'will provide'
         };
         filterJson = JsonFilter.makeFilter(loglineTemplate);
         logger.addFilter(filterJson);
         logger.info("Hello, world.");
         // {"time":1414627805981,"level":"info","custom1":123,"message":"Hello, world."}
+        logger.info(new Error("oops"));
+
+### Timestamp formatting
+
+QLogger exports the simple timestamp formatter used by filterBasic.  It takes
+a millisecond precision timestamp as returned by Date.now(), and formats an
+SQL-type ISO 9075 datetime string (YYYY-mm-dd HH:ii:ss, whole seconds, no
+timezone).  It's much faster than Date.toISOString, and much much faster than
+general-purpose timestamp formatters like moment or phpdate.
+
+filterBasic appends the milliseconds to the formatted timestamp separately, to
+save having to repeatedly format the same time during busts.  Something like
+
+        now = Date.now();
+        msec = now % 1000;
+        str = formatIsoDate(now - msec);
+        str += "." + (msec >= 100 ? msec : msec >= 10 ? "0" + msec : "00" + msec);
+
+Note that although formatting the timestamp takes only .5 microseconds,
+logging a line to a file itself is just 1.5 microseconds (per line, average).
+Timing it, reusing a formatted timestamp results in 28% faster throughput.
+
+
+#### formatIsoDate( timestamp )
+
+        var formatIsoDate = require('qlogger/filters').formatIsoDate;
+        var timestamp = Date.now();
+        // => 1414627805981
+        var time = formatIsoDate(timestamp);
+        // => 2014-10-29 20:10:05
+
+#### formatIsoDateUtc( timestamp )
+
+        var formatIsoDateUTC = require('qlogger/filters').formatIsoDateUtc;
+        var time = formatIsoDate(1414627805981);
+        // => 2014-10-30 00:10:05
 
 Related
 -------
@@ -262,3 +299,11 @@ Related
 For pure streaming line-oriented data transport, see
 [qfputs](https://www.npmjs.org/package/qfputs) for high-speed batched fputs(), and
 [qfgets](https://www.npmjs.org/package/qfgets) for batched fgets().
+
+
+TODO
+----
+
+- only insert time/level/message into json logs if specified in template
+  (ie, if using the default template or present in the user-supplied template)
+- maybe log to process.stdout by default instead of not writing?

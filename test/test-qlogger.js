@@ -38,6 +38,29 @@ module.exports = {
         },
     },
 
+    'instance': {
+        'should export the logging methods': function(t) {
+            var methods = ['error', 'err', 'warning', 'warn', 'info', 'debug'];
+            var i;
+            for (i=0; i<methods.length; i++) {
+                var method = methods[i];
+                this.logger[method]("log message");
+            }
+            t.done();
+        },
+
+        'should set and get the loglevel': function(t) {
+            var levels = ['error', 'warning', 'info', 'debug'];
+            var i;
+            for (i=0; i<levels.length; i++) {
+                var level = levels[i];
+                this.logger.loglevel(level);
+                t.equal(this.logger.loglevel(), QLogger.LOGLEVELS[level]);
+            }
+            t.done();
+        },
+    },
+
     'logging': {
         setUp: function(done) {
             this.lines = [];
@@ -59,19 +82,6 @@ module.exports = {
             this.logger.info("hello");
             t.equal("hello\n", this.lines[0]);
             t.equal("hello\n", this.lines2[0]);
-            t.done();
-        },
-
-        'should return loglevel ': function(t) {
-            var level = this.logger.loglevel();
-            t.equal(QLogger.LOGLEVELS['info'], level);
-            t.done();
-        },
-
-        'should set loglevel': function(t) {
-            var oldlevel = this.logger.loglevel('error');
-            var newlevel = this.logger.loglevel();
-            t.equal(QLogger.LOGLEVELS['error'], newlevel);
             t.done();
         },
     },
@@ -128,12 +138,13 @@ module.exports = {
             try { fs.unlinkSync('/tmp/nodeunit.test.out'); } catch (e) { }
             this.logger.addWriter(writer);
             this.logger.info("hello");
+            this.logger.info("there");
             t.expect(1);
             this.logger.fflush(function(err) {
                 if (err) throw err;
                 var contents = fs.readFileSync('/tmp/nodeunit.test.out');
                 fs.unlinkSync('/tmp/nodeunit.test.out');
-                t.equal("hello\n", contents.toString());
+                t.equal("hello\nthere\n", contents.toString());
                 t.done();
             });
         },
@@ -146,16 +157,16 @@ module.exports = {
         },
 
         'should pass loglevel to filter': function(t) {
-            var self = this;
-            this.logger.addFilter(function(msg, loglevel) { self.lines.push(loglevel); return msg; });
+            var levels = [];
+            this.logger.addFilter(function(msg, loglevel) { levels.push(loglevel); return msg; });
             this.logger.info("test1");
             this.logger.error("test2");
-            t.equal(QLogger.LOGLEVELS['info'], this.lines[0]);
-            t.equal(QLogger.LOGLEVELS['error'], this.lines[1]);
+            t.equal(QLogger.LOGLEVELS['info'], levels[0]);
+            t.equal(QLogger.LOGLEVELS['error'], levels[1]);
             t.done();
         },
 
-        'should apply all filters before writing line': function(t) {
+        'should apply all filters and newline terminate before writing line': function(t) {
             var self = this;
             this.logger.addWriter({write: function(msg, cb) { self.lines.push(msg); cb(); }});
             this.logger.addFilter(function(msg, loglevel) { return "a<" + msg; });
@@ -167,11 +178,13 @@ module.exports = {
             t.done();
         },
 
-        'should not send info to error-only logger': function(t) {
+        'should only log errors to error-only logger': function(t) {
             this.logger = new QLogger('error');
             var self = this;
             this.logger.addWriter({write: function(msg, cb) { self.lines.push(msg); cb(); }});
+            this.logger.debug("debug");
             this.logger.info("info");
+            this.logger.warning("warning");
             this.logger.error("error");
             t.equal(1, this.lines.length);
             t.equal("error\n", this.lines[0]);
