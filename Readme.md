@@ -3,20 +3,23 @@ qlogger
 
 quick nodejs logging and newline delimited data transport
 
-QLogger is a very lean, very fast, very configurable data transport agent.
-It logs by sending newline-delimited strings to the added writers.  The
-strings may be edited in flight by added filters.  Filters can annotate the
-log line with the usual timestamp, loglevel, hostname, etc., or serialize
-objects for export.
+QLogger is a lean, fast, configurable logger and componentized data transport
+framework, allowing easy construction of custom loggers.
 
-On my system I get 400k 200 byte lines per second (80 MB/s) saved to a shared,
-mutexed file (using [qfputs](https://www.npmjs.org/package/qfputs) as the
-writer).
+It can log in any format, eg space-separated text or json bundles.  The
+formatters and writers are pluggable, use one of the defaults or use your
+own.
 
-A slow logger is only usable for occasional messages.  A fast streaming
-facility can be used for high-throughput data transport -- backing up all
-requests, sending detailed stats, batch request processing -- as well as for
-those occasional messages.
+How fast?  On my system I get 650k 200 byte lines per second saved to a shared
+logfile under LOCK_EX mutex (using [qfputs](https://www.npmjs.org/package/qfputs)
+as the writer).
+
+A slow logger can report on the data being processed.  A fast logger is a data
+streaming engine, and can itself process data.
+
+        var QLogger = require('qlogger');
+        var logger = new QLogger('info', 'file:///var/log/myapp/app.log');
+        logger.addFilter(require('qlogger/filters').filterBasic);
 
 Installation
 ------------
@@ -27,8 +30,13 @@ or clone the repo
 
         git clone https://github.com/andrasq/qlogger
 
-Details
--------
+Structure
+---------
+
+QLogger sends newline-delimited strings (messages) to writers.  The strings
+may be edited in flight by filters.  Filters return the modified string, and
+can annotate it with timestamp, loglevel, hostname, etc., or serialize objects
+for export.  Writers deliver the strings to their detaination.
 
 Writers can be added to write to file, send over TCP/IP, send to syslog, etc.
 The strings can be modified in flight by filters, which will write the altered
@@ -37,29 +45,39 @@ Writers and filters must be configured explicitly, there is no default.
 
 QLogger exports a simplified subset of the traditional logging methods:
 error, info, and debug.  Each log message is appended to the logfile
-as a newline delimited data chunk.
+as a newline terminated string.
 
 Newline delimited text is a universally compatible, easy-to-parse and
 very very fast way to stream and process data.
 
-Points to keep in mind for general-purpose data transport logfiles:
+Points to keep in mind when using logfiles for general-purpose data transport:
   - the logfile might have multiple writers and unix writes are not atomic,
-    ie writes need a mutex
-  - the logfile might be consumed by simple readers, so each write should
-    be a complete newline terminated data item (message)
+    ie writes need a mutex (write-write mutex, eg flock(LOCK_EX))
+  - the logfile might be consumed by simple readers that do not tolerate
+    partial writes, so each write should be a complete newline terminated
+    message (ie, hold the lock for the duration of the write)
   - the reader might itself modify the logfile (eg compact it), so
-    writes need a mutex
-  - the logfile might get consumed (renamed or removed), ie must reopen
-    the file periodically
-  - the logfile could be used for high-speed low-latency buffering, so
-    the logfile reopen interval should be pretty short
+    writes need a mutex (read-write mutex, eg flock(LOCK_EX))
+  - the logfile might get consumed (renamed or removed), ie cannot reuse the
+    file handle indefinitely, must reopen the file periodically
+  - the logfile could be used for low-latency buffering, so the reopen
+    interval should be pretty short (all consumers of the logfile must
+    wait out the reopen interval to ensure that activity has settled
+    before moving on from the file)
 
-### Example
+### Examples
+
+Log to stdout, formatting the log lines with the basic plaintext filter.  Step
+by step:
 
         QLogger = require('qlogger');
+        logger = new QLogger();
+        logger.loglevel('info');
+        logger.addWriter(process.stdout);
         filterBasic = require('qlogger/filters').filterBasic;
-        logger = new QLogger('info', process.stdout);
         logger.addFilter(filterBasic);
+
+And then
 
         logger.info("Hello, world.");
         // => 2014-11-22 15:03:38.482 [info] Hello, world.
@@ -68,10 +86,33 @@ Points to keep in mind for general-purpose data transport logfiles:
         logger.error("Hello again.");
         // => 2014-11-22 15:03:38.483 [error] Hello again.
 
+Same as above, but more succinctly:
+
+        logger = require('qlogger')('info', process.stdout);
+        logger.addFilter(require('qlogger/filters').filterBasic);
+
+Log to file using a write stream, formatting the log lines with a quick inline
+function (note: this is just as an example, file write streams are too slow to
+use where speed matters):
+
+        fs = require('fs');
+        QLogger = require('qlogger');
+        logger = new QLogger('info', fs.createWriteStream('app.log', 'a'));
+        logger.addFilter(function(msg, level) {
+            return new Date().toISOString + " " + msg;
+        });
+
+Log to file using a qfputs FileWriter, without any additional formatting.
+This can stream over 100MB/sec of data one line at a time to a
+mutex-controlled shared logfile, and
+
+        QLogger = require('qlogger');
+        logger = new QLogger('info', QLogger.createWriter('file://app.log', 'a'));
+
 Methods
 -------
 
-### new QLogger( [loglevel], [writerSpec] )
+### new QLogger( [loglevel], [writer] )
 
 Create a logger that will log messages of importance loglevel or above.  It is
 an error if the loglevel is not recognized.
@@ -84,11 +125,11 @@ omitted, leaving just the three essential message classes:  human
 attention required, useful statistics, and everything available for
 debugging.
 
-The optional WriterSpec may be a writerObject (see addWriter below), or a
-writer specification string.  The latter will create one of the built-in
-writers.  If no writerSpec is given, the logger will be created without a
-writer.  It is an error if the writer specification is not recognized.  The
-built-in writers are those supported by QLogger.createWriter() (see below):
+The optional writer may be a writerObject (see addWriter below), or a writer
+specification string.  The latter will create one of the built-in writers
+using QLogger.createWriter().  If no writerSpec is given, the logger will be
+created without a writer.  It is an error if the writer specification is not
+recognized.  The built-in writers are those supported by createWriter().
 
 ### QLogger.createWriter( writerSpec )
 
@@ -180,7 +221,7 @@ and the logelevel.
         logger.info("Hello, world.")
         // 2014-10-19 01:23:45.678 [info] Hello, world.
 
-#### filterJson = (require('qlogger/filters').JsonFilter).makeFilter({})
+#### filterJson = require('qlogger/filters').JsonFilter.makeFilter()
 
 `filterJson()` logs a stringified json bundle that will always have fields
 "time", "level" and "message".  The time is a millisecond timestamp.  Other
