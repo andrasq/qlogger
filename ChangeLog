@@ -1,3 +1,6 @@
+1.2.2
+- call fflush on writers, not sync
+
 1.2.1
 - introduced warning() logging method
 
