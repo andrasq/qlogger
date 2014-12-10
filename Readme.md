@@ -155,7 +155,7 @@ The recognized writer specifications are:
 
 Log a multi-argument message.  The message is passed to the filters using the
 current loglevel (so a logger that has loglevel 'debug' will write log()
-messages as if they were from debug()).  Multiple arguments are passed in an
+messages as if they were from debug()).  Multiple arguments are gathered into an
 array, and the filter is expected to convert them to a string.  (This last
 allows `printf`-like formatted output).
 
