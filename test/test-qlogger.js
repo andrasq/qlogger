@@ -84,6 +84,26 @@ module.exports = {
             t.equal("hello\n", this.lines2[0]);
             t.done();
         },
+
+        'log() should log with default loglevel': function(t) {
+            var calls = [];
+            this.logger.addFilter(function(msg, loglevel) { calls.push({msg: msg, level: loglevel}); return msg; });
+            this.logger.loglevel('error');
+            this.logger.log("test");
+            t.equal(calls.length, 1);
+            t.equal(calls[0].level, QLogger.LOG_ERROR);
+            t.deepEqual(calls[0].msg, "test");
+            t.done();
+        },
+
+        'log() should gathers arguments into array': function(t) {
+            var calls = [];
+            this.logger.addFilter(function(msg, loglevel) { calls.push({msg: msg, level: loglevel}); return msg; });
+            this.logger.loglevel('error');
+            this.logger.log(1, 2, 3);
+            t.deepEqual(calls[0].msg, [1,2,3]);
+            t.done();
+        },
     },
 
     'writers': {

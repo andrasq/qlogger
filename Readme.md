@@ -3,16 +3,18 @@ qlogger
 
 quick nodejs logging and newline delimited data transport
 
-QLogger is a lean, fast, configurable logger and componentized data transport
-framework, allowing easy construction of custom loggers.
+QLogger is a toolkit for building very fast loggers.  It can be used out of
+the box as-is, or it can be reassembled in new ways for custom loggers. It's
+lean, fast, flexible, and easy to use.
 
 It can log in any format, eg space-separated text or json bundles.  The
 formatters and writers are pluggable, use one of the defaults or use your
 own.
 
 How fast?  On my system I get 650k 200 byte lines per second saved to a shared
-logfile under LOCK_EX mutex (using [qfputs](https://www.npmjs.org/package/qfputs)
-as the writer).
+logfile under LOCK_EX mutex
+(using [qfputs](https://www.npmjs.org/package/qfputs) as the writer and logging
+only 2 lines per continuable; 1.1m per sec if logging 5 lines per continuable).
 
 A slow logger can report on the data being processed.  A fast logger is a data
 streaming engine, and can itself process data.
@@ -104,7 +106,7 @@ use where speed matters):
 
 Log to file using a qfputs FileWriter, without any additional formatting.
 This can stream over 100MB/sec of data one line at a time to a
-mutex-controlled shared logfile, and
+mutex-controlled shared logfile.
 
         QLogger = require('qlogger');
         logger = new QLogger('info', QLogger.createWriter('file://app.log', 'a'));
@@ -143,33 +145,45 @@ The recognized writer specifications are:
         tcp://<host>:<port>             // net.connect() tcp connection
         udp://<host>:<port>             // datagram
 
-### error( message )
+### Logging Methods
+
+#### log( message [, ...] )
+
+Log a multi-argument message.  The message is passed to the filters using the
+current loglevel (so a logger that has loglevel 'debug' will write log()
+messages as if they were from debug()).  Multiple arguments are passed in an
+array, and the filter is expected to convert them to a string.  (This last
+allows `printf`-like formatted output).
+
+#### error( message )
 
 Log an error message.  Error messages will be logged by all loglevels,
 'error', 'info' and 'debug'.
 
-### info( message )
+#### info( message )
 
 Log an informational message.  The logger must have loglevel 'info' or
 'debug'.
 
-### debug( message )
+#### debug( message )
 
 Log a debug message.  The logger must have loglevel of 'debug'.
 
-### fflush( callback )
+#### fflush( callback )
 
 Tries to force all writers to write out any buffered data.  Invokes the
 callback once the writes have all finished.  This is a half-hearted
 implementation, since fflush can only flush write streams, tcp sockets and
 FileWriter (file://) objects.
 
-### loglevel( [newLoglevel] )
+#### loglevel( [newLoglevel] )
 
 returns the current loglevel.  The loglevel controls the log sensitivity; a
 loglevel of 'info' would write info() and error() messages but not debug().
 If a new loglevel is specified, the logger will change the loglevel and
 returns the old loglevel.
+
+### Configuration Methods
 
 ### addWriter( writerObject )
 
@@ -210,6 +224,8 @@ objects, and can merge fields from a static template object into each logline.
 The standard fields "time", "level" and "message" in the template object are
 overwritten with the run-time values; this can be used to control the order
 of the fields in the output.
+
+### Built-In Filters
 
 #### filterBasic = require('qlogger/filters').filterBasic
 
