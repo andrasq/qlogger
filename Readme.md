@@ -28,9 +28,13 @@ Installation
 
         npm install qlogger
 
-or clone the repo
+Unit test:
 
-        git clone https://github.com/andrasq/qlogger
+        npm test qlogger
+
+Speed test (log 100k timestamped 200 byte lines):
+
+        node node_modules/qlogger/benchmark.js
 
 Structure
 ---------
