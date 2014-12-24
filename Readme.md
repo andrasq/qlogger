@@ -241,7 +241,7 @@ and the logelevel.
         logger.info("Hello, world.")
         // 2014-10-19 01:23:45.678 [info] Hello, world.
 
-#### filterJson = require('qlogger/filters').JsonFilter.makeFilter()
+#### filterJson = require('qlogger/filters').JsonFilter.makeFilter( opts )
 
 `filterJson()` logs a stringified json bundle that will always have fields
 "time", "level" and "message".  The time is a millisecond timestamp.  Other
@@ -277,6 +277,10 @@ output.
         logger.info("Hello, world.");
         // {"time":1414627805981,"level":"info","custom1":123,"message":"Hello, world."}
         logger.info(new Error("oops"));
+
+The json encoding function to use can be specified in `opts.encode`.
+The default is JSON.stringify, but for simple json logging
+[json-simple](http://npmjs.org/package/json-simple) is 2x faster.
 
 ### Timestamp formatting
 

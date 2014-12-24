@@ -13,7 +13,7 @@ module.exports = {
             uniqid: this.uniqid,
         };
         this.jsonFilter = new JsonFilter(this.template);
-        this.filter = this.jsonFilter.filter;
+        this.filter = function(msg, level){ return this.jsonFilter.filter(msg, level) };
         done();
     },
 
@@ -21,6 +21,17 @@ module.exports = {
         var filter = JsonFilter.makeFilter({a: 1, b: 2});
         var bundle = JSON.parse(filter("log line text", 7));
         t.equal(bundle.level, 'debug');
+        t.equal(1, bundle.a);
+        t.done();
+    },
+
+    'makeFilter should use configured encoder': function(t) {
+        var ncalls = 0;
+        var encode = function testStringify(msg, level){ ncalls++; return JSON.stringify(msg) };
+        var filter = JsonFilter.makeFilter({}, {encode: encode});
+        filter("message one", 3);
+        filter("message two", 3);
+        t.equal(2, ncalls);
         t.done();
     },
 
