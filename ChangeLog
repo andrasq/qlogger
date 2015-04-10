@@ -1,3 +1,22 @@
+1.3.5 2015-04-09
+- catch up changelog (fm 1.2.2)
+- tune json-filter
+
+1.3.4  2015-01-01
+- bugfix: bump to qfputs@1.0.10
+
+1.3.3  2014-12-26
+- bugfix: bump to qfputs@1.0.9
+
+1.3.2  2014-12-24
+- encoder: option to JsonFilter.makeFilter()
+
+1.3.1  2014-12-09
+- benchmark.js speed test
+
+1.3.0  2014-12-09
+- log() method
+
 1.2.2
 - call fflush on writers, not sync
 

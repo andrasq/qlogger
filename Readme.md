@@ -330,4 +330,6 @@ TODO
 
 - only insert time/level/message into json logs if specified in template
   (ie, if using the default template or present in the user-supplied template)
+  Omit them if not present in the supplied template.
 - maybe log to process.stdout by default instead of not writing?
+- make JsonFilter `time` use a function specified in the template
