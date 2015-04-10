@@ -20,6 +20,8 @@ if (useFilter) log.addFilter(require('./filters').filterBasic);
 
 message = new Array(199).join("x") + "\n";
 
+setImmediate = global.setImmediate || process.nextTick;
+
 t1 = Date.now();
 nlines = 100000;
 (function loop() {
