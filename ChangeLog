@@ -1,6 +1,11 @@
+1.3.9  2015-04-22
+
+- report errors on fflush()
+- bump to qfputs@1.0.14 for bugfix
+
 1.3.8  2015-04-22
 
-- guard against empty message in filter-json
+- guard against missing message in filter-json
 
 1.3.7  2015-04-17
 
