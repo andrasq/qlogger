@@ -259,6 +259,10 @@ Error object), are replaced with run-time values.  If the message itself
 contains time, level or message, the fields from the message will be the ones
 output.
 
+To omit "level" from the logline, specify `level: false` in the template.
+The timestamp "time" will always be set.  "message" will be set if a string
+is logged.
+
         var JsonFilter = require('qlogger/filters').JsonFilter;
         var loglineTemplate = {
             // the template defines the basic set of fields to log
@@ -333,3 +337,4 @@ TODO
   Omit them if not present in the supplied template.
 - maybe log to process.stdout by default instead of not writing?
 - make JsonFilter `time` use a function specified in the template
+- support a _printit(level, fmt, ...args) method for sprintf-formatted output

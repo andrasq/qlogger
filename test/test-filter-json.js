@@ -11,6 +11,7 @@ module.exports = {
         this.template = {
             host: 'hostname',
             uniqid: this.uniqid,
+            level: true,
         };
         this.jsonFilter = new JsonFilter(this.template);
         this.filter = function(msg, level){ return this.jsonFilter.filter(msg, level) };
@@ -18,7 +19,7 @@ module.exports = {
     },
 
     'makeFilter should return bound filter function': function(t) {
-        var filter = JsonFilter.makeFilter({a: 1, b: 2});
+        var filter = JsonFilter.makeFilter({a: 1, b: 2, level: true});
         var bundle = JSON.parse(filter("log line text", 7));
         t.equal(bundle.level, 'debug');
         t.equal(1, bundle.a);
@@ -58,6 +59,14 @@ module.exports = {
         t.done();
     },
 
+    'should omit loglevel if so configured': function(t) {
+        var filter = JsonFilter.makeFilter({a: 2, level: false});
+        var bundle = JSON.parse(filter("log line text", 7));
+        t.strictEqual(bundle.level, undefined);
+        t.equal(2, bundle.a);
+        t.done();
+    },
+
     'should include message': function(t) {
         var i, buff = new Buffer(127);
         for (i=0; i<128; i++) buff[i] = i;
@@ -90,5 +99,14 @@ module.exports = {
         t.ok(bundle.error.message === 'log error');
         t.ok(bundle.error.stack);
         t.done();
+    },
+
+    'test 10k filter-json': function(t) {
+        var ret;
+        for (var i = 0; i<10000; i++) {
+            ret = this.filter({a: 1, b: 2});
+        }
+        t.done();
+        // 200k/s
     },
 };
