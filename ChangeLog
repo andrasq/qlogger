@@ -1,3 +1,12 @@
+1.3.11 2016-03-01
+
+- use qfputs 1.2.7 for node v4 compatibility
+- test with qnit
+
+1.3.10 2016-02-17
+
+- do not let QLogger be attached to global, and 'use strict'
+
 1.3.9  2015-04-22
 
 - report errors on fflush()
