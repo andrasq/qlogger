@@ -4,6 +4,7 @@
  */
 
 fs = require('fs');
+net = require('net');
 QLogger = require('../index');
 filterBasic = require('../filters').filterBasic;
 filterJson = (require('../filters')).JsonFilter.makeFilter({})
@@ -127,7 +128,14 @@ module.exports = {
 
         'should create tcp:// writer': function(t) {
             t.expect(1);
-            var writer = QLogger.createWriter('tcp://localhost:80');
+            var server = net.createServer(function(socket) {
+            });
+            server.on('error', function(err) {
+                t.done(err);
+            })
+            server.listen(1337, 'localhost');
+
+            var writer = QLogger.createWriter('tcp://localhost:1337');
             writer.on('error', function() {
                 t.ok(false, "no localhost http server, unable to test tcp");
                 t.done();
@@ -135,6 +143,7 @@ module.exports = {
             writer.on('connect', function() {
                 writer.end();
                 t.ok(writer);
+                server.close();
                 t.done();
             });
         },
