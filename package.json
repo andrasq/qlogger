@@ -16,7 +16,7 @@
     "node": ">=0.8"
   },
   "scripts": {
-    "test": "qnit"
+    "test": "env TZ=America/New_York qnit test"
   },
   "keywords": [
     "Andras",

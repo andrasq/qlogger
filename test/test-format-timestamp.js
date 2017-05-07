@@ -5,9 +5,6 @@
 
 assert = require('assert');
 
-// the format tests expect US/Eastern timezone
-process.env.TZ = "America/New_York";
-
 formatIsoDate = require('../filters').formatIsoDate;
 formatIsoDateUtc = require('../filters').formatIsoDateUtc;
 pad2 = require('../lib/format-timestamp').pad2;
