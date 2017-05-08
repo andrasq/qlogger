@@ -40,6 +40,32 @@ module.exports = {
     },
 
     'instance': {
+        'constructor should create writer by name': function(t) {
+            var logger = new QLogger('info', 'null://');
+            t.deepEqual(Object.keys(logger._writers[0]), ['write']);
+            t.done();
+        },
+
+        'constructor should accept a writer object': function(t) {
+            var writer = {write: function(){}};
+            var logger = new QLogger('info', writer);
+            t.equal(logger._writers[0], writer);
+            t.done();
+        },
+
+        'constructor should work as a factory without new': function(t) {
+            var logger = QLogger();
+            t.ok(logger instanceof QLogger);
+            t.done();
+        },
+
+        'constructor should throw on invalid loglevel': function(t) {
+            t.throws(function() {
+                new QLogger('nonesuch');
+            })
+            t.done();
+        },
+
         'should export the logging methods': function(t) {
             var methods = ['error', 'err', 'warning', 'warn', 'info', 'debug'];
             var i;
@@ -58,6 +84,14 @@ module.exports = {
                 this.logger.loglevel(level);
                 t.equal(this.logger.loglevel(), QLogger.LOGLEVELS[level]);
             }
+            t.done();
+        },
+
+        'loglevel should throw on invalid loglevel': function(t) {
+            var logger = this.logger;
+            t.throws(function() {
+                logger.loglevel('nonesuch');
+            })
             t.done();
         },
     },
@@ -105,9 +139,51 @@ module.exports = {
             t.deepEqual(calls[0].msg, [1,2,3]);
             t.done();
         },
+
+        'should omit empty messages': function(t) {
+            this.logger.info("");
+            t.equal(this.lines.length, 0);
+            t.done();
+        },
+    },
+
+    'errors': {
+        'should gather write erorrs and report them to fflush': function(t) {
+            var writer = {write: function(str, cb) { return cb(new Error("write error")) }};
+            var logger = this.logger;
+            logger.addWriter(writer);
+            logger.info('test');
+            t.equal(logger._writeErrors.length, 1);
+            t.equal(logger._writeErrors[0].message, "write error");
+            logger.fflush(function(err) {
+                t.ok(err);
+                t.equal(err.message, "write error");
+                t.equal(logger._writeErrors.length, 0);
+                t.done();
+            })
+        },
+
+        'should report fflush errors': function(t) {
+            var writer = {write: function(str, cb) { cb() }, fflush: function(cb) { cb(new Error("fflush error")) }};
+            var logger = this.logger;
+            logger.addWriter(writer);
+            logger.fflush(function(err, ret) {
+                t.ok(err);
+                t.equal(err.message, "fflush error");
+                t.done();
+            })
+        },
     },
 
     'writers': {
+        'should create functional null:// mock writer': function(t) {
+            var writer = QLogger.createWriter('null://');
+            writer.write("test", function(err) {
+                t.ifError(err);
+                t.done();
+            })
+        },
+
         'should create file://- stdout writer': function(t) {
             var writer = QLogger.createWriter('file://-');
             t.equal(process.stdout, writer);
@@ -143,8 +219,9 @@ module.exports = {
             writer.on('connect', function() {
                 writer.end();
                 t.ok(writer);
-                server.close();
-                t.done();
+                server.close(function() {
+                    t.done();
+                });
             });
         },
 
@@ -154,6 +231,19 @@ module.exports = {
             // udp sockets are closed with 'close'
             writer.close();
             t.done();
+        },
+
+        'udp:// writer should return error if line too long': function(t) {
+            var writer = QLogger.createWriter('udp://localhost:80');
+            var stub = t.stub(process.stderr, 'write');
+            writer.write("xxx", function(err) {
+                t.ifError(err);
+                writer.write(new Array(70000).join('x'), function(err) {
+                    t.ok(err);
+                    stub.restore();
+                    t.done();
+                });
+            })
         },
 
         'should create file:// writer': function(t) {
@@ -176,6 +266,21 @@ module.exports = {
                 t.equal("hello\nthere\n", contents.toString());
                 t.done();
             });
+        },
+
+        'should throw on invalid writer selector': function(t) {
+            t.throws(function() {
+                QLogger.createWriter('nonesuch://');
+                t.fail("did not throw");
+            })
+            t.done();
+        },
+
+        'should return error on invalid writer selector': function(t) {
+            QLogger.createWriter('nonesuch://', function(err) {
+                t.ok(err);
+                t.done();
+            })
         },
     },
 

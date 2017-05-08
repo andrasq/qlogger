@@ -1,6 +1,9 @@
 qlogger
 =======
 
+[![Build Status](https://travis-ci.org/andrasq/qlogger.svg?branch=master)](https://travis-ci.org/andrasq/qlogger)
+[![Coverage Status](https://coveralls.io/repos/github/andrasq/qlogger/badge.svg?branch=master)](https://coveralls.io/github/andrasq/qlogger?branch=master)
+
 quick nodejs logging and newline delimited data transport
 
 QLogger is a toolkit for building very fast loggers.  It can be used out of
