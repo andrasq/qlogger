@@ -211,18 +211,21 @@ module.exports = {
             })
             server.listen(1337, 'localhost');
 
-            var writer = QLogger.createWriter('tcp://localhost:1337');
-            writer.on('error', function() {
-                t.ok(false, "no localhost http server, unable to test tcp");
-                t.done();
-            });
-            writer.on('connect', function() {
-                writer.end();
-                t.ok(writer);
-                server.close(function() {
+            // allow time for the server to start, else test can fail
+            setTimeout(function() {
+                var writer = QLogger.createWriter('tcp://localhost:1337');
+                writer.on('error', function() {
+                    t.ok(false, "no localhost tcp server, unable to test tcp");
                     t.done();
                 });
-            });
+                writer.on('connect', function() {
+                    writer.end();
+                    t.ok(writer);
+                    server.close(function() {
+                        t.done();
+                    });
+                });
+            }, 20);
         },
 
         'should create udp:// writer': function(t) {
