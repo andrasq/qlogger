@@ -2,12 +2,12 @@
  * To run the benchmark:
  *
  * $ cd node_modules/qlogger
- * $ node test/benchmark.js
- * $ rm -f test.log
+ * $ node ./benchmark.js
+ * $ rm -f /tmp/test.log
  */
 
 logfileName = '/tmp/test.log';          // also try /dev/shm/test.log
-useFilter = true;                       // 400k/s filtered, 650k/s raw
+useFilter = true;                       // 400k/s filtered, 650k/s raw; v1.4.0 i7 SKL: 700k/s filtered, 1100k/s raw
 removeLogfile = true;                   // set to false to look at logfile contents
 
 

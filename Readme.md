@@ -132,7 +132,9 @@ standard unix syslog loglevels 3, 6 and 7.  The higher syslog logging
 levels (emerg, alert, and crit) and warning and notice were deliberately
 omitted, leaving just the three essential message classes:  human
 attention required, useful statistics, and everything available for
-debugging.
+debugging.  As of version v1.4.0, all `syslog` loglevels are recognized:
+'emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info' and 'debug',
+along with 'all' and 'none'.
 
 The optional writer may be a writerObject (see addWriter below), or a writer
 specification string.  The latter will create one of the built-in writers
