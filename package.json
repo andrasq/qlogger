@@ -34,9 +34,9 @@
     "bunyan"
   ],
   "dependencies": {
-    "qfputs": "1.2.7"
+    "qfputs": "1.7.0"
   },
   "devDependencies": {
-    "qnit": "0.15.1"
+    "qnit": "0.17.1"
   }
 }
