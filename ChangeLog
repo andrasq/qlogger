@@ -1,3 +1,9 @@
+1.5.0 2017-12-29
+
+- new `formatNumericDateUtc` timestamp formatter
+- upgrade to qfputs 1.7.1 to fix fs-ext install warnings
+- use latest qnit 0.19.0
+
 1.4.0 2017-08-17
 
 - support all syslog loglevels

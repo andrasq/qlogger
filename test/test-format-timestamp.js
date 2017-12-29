@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2014 Andras Radics
+ * Copyright (C) 2014-2017 Andras Radics
  * Licensed under the Apache License, Version 2.0
  */
 
@@ -7,6 +7,7 @@ assert = require('assert');
 
 formatIsoDate = require('../filters').formatIsoDate;
 formatIsoDateUtc = require('../filters').formatIsoDateUtc;
+formatNumericDateUtc = require('../filters').formatNumericDateUtc;
 pad2 = require('../lib/format-timestamp').pad2;
 pad3 = require('../lib/format-timestamp').pad3;
 pad4 = require('../lib/format-timestamp').pad4;
@@ -49,10 +50,22 @@ module.exports = {
         t.done();
     },
 
+    'should format numeric date': function(t) {
+        var msg = formatNumericDateUtc(980271296123);
+        assert.equal(msg, '20010123173456.123');
+        t.done();
+    },
+
     'speed': {
         'format 100k timestamps': function(t) {
             var i;
             for (i=0; i<100000; i++) formatIsoDate(980271296000);
+            t.done();
+        },
+
+        'format 100k numericDateUtc': function(t) {
+            var i;
+            for (i=0; i<100000; i++) formatNumericDateUtc(980271296000);
             t.done();
         },
 
