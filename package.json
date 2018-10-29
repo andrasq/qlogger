@@ -1,6 +1,6 @@
 {
   "name": "qlogger",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "fast configurable logger and newline delimited data transport",
   "license": "Apache-2.0",
   "repository": {
@@ -34,9 +34,9 @@
     "bunyan"
   ],
   "dependencies": {
-    "qfputs": "1.7.1"
+    "qfputs": "1.7.2"
   },
   "devDependencies": {
-    "qnit": "0.19.0"
+    "qnit": "0.25.1"
   }
 }
