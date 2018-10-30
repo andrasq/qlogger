@@ -82,6 +82,21 @@ module.exports = {
         t.done();
     },
 
+    'should use all defaults': function(t) {
+        var filter = new JsonFilter();
+        t.strictEqual(filter.includeLoglevel, true);
+        t.strictEqual(filter.template.message, '');
+        t.done();
+    },
+
+    'should makeFilter with all defaults': function(t) {
+        var filterFunction = JsonFilter.makeFilter();
+        var filtered = filterFunction('my test message');
+        t.contains(filtered, '"time":');
+        t.contains(filtered, '"my test message"');
+        t.done();
+    },
+
     'should accept object for message': function(t) {
         var obj = {a:1, b:2, c:3};
         var bundle = JSON.parse(this.filter(obj, 6));
