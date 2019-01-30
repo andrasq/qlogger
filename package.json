@@ -9,7 +9,7 @@
   "author": { "name": "Andras", "url": "http://github.com/andrasq" },
   "engines": { "node": ">=0.8" },
   "keywords": [ "Andras", "quick", "fast", "logging", "newline", "delimited", "text", "data", "transport", "json", "bunyan" ],
-  "readme": "see the readme in the repo",
+  "readme": "see the README.md in the repo",
 
   "dependencies": {
     "qfputs": "1.7.2"
