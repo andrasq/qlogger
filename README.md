@@ -1,14 +1,13 @@
 qlogger
 =======
-
 [![Build Status](https://travis-ci.org/andrasq/qlogger.svg?branch=master)](https://travis-ci.org/andrasq/qlogger)
 [![Coverage Status](https://codecov.io/github/andrasq/qlogger/coverage.svg?branch=master)](https://codecov.io/github/andrasq/qlogger?branch=master)
 
 quick nodejs logging and newline delimited data transport
 
 QLogger is a toolkit for building very fast loggers.  It can be used out of
-the box as-is, or it can be reassembled in new ways for custom loggers. It's
-lean, fast, flexible, and easy to use.
+the box as-is, or it can be easily configured in new ways for custom loggers.
+It's very lean, very fast, very flexible, and easy to use.
 
 It can log in any format, eg space-separated text or json bundles.  The
 formatters and writers are pluggable, use one of the defaults or use your
