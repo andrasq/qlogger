@@ -16,6 +16,6 @@ addons:
       - g++-4.8
 after_success:
   - if [ `node -p 'process.version.slice(0, 3)'` != "v8." ]; then exit; fi
-  - npm install -g nyc
-  - npm install -g codecov
-  - nyc --reporter lcov npm test && codecov
+  - npm install -g nyc codecov coveralls
+  - nyc -r text --reporter lcov npm test && codecov
+  - nyc report -r text-lcov | coveralls

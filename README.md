@@ -1,7 +1,7 @@
 qlogger
 =======
 [![Build Status](https://travis-ci.org/andrasq/qlogger.svg?branch=master)](https://travis-ci.org/andrasq/qlogger)
-[![Coverage Status](https://codecov.io/github/andrasq/qlogger/coverage.svg?branch=master)](https://codecov.io/github/andrasq/qlogger?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/andrasq/qlogger/badge.svg?branch=master)](https://coveralls.io/github/andrasq/qlogger?branch=master)
 
 quick nodejs logging and newline delimited data transport
 
