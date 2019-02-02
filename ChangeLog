@@ -1,3 +1,13 @@
+1.6.0 2019-02-**
+
+- new `formatJsDateIsoString` timestamp formatter
+- expose the `formatBasicDate` timestamp formatter
+- new fast built-in source of formatter timestamps
+- make all formatters instances of an optimized DateFormatter
+- timestamps are now optional to formatters
+- expose the BasicFilter implementation class
+- expose a `create` method on the built-in filters
+
 1.5.0 2017-12-29
 
 - new `formatNumericDateUtc` timestamp formatter
