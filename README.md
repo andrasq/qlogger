@@ -21,9 +21,12 @@ only 2 lines per continuable; 1.1m per sec if logging 5 lines per continuable).
 A slow logger can report on the data being processed.  A fast logger is a data
 streaming engine, and can itself process data.
 
-        var QLogger = require('qlogger');
-        var logger = new QLogger('info', 'file:///var/log/myapp/app.log');
-        logger.addFilter(require('qlogger/filters').filterBasic);
+        const qlogger = require('qlogger');
+        const filters = require('qlogger/filters');
+        const logger = qlogger('info', 'file:///var/log/myApp/app.log');
+        logger.addFilter(filters.BasicFilter().create());
+        logger.info('Hello, world.');
+
 
 Installation
 ------------
@@ -75,15 +78,12 @@ Points to keep in mind when using logfiles for general-purpose data transport:
 
 ### Examples
 
-Log to stdout, formatting the log lines with the basic plaintext filter.  Step
-by step:
+Log to stdout, formatting the log lines with the basic plaintext filter:
 
-        QLogger = require('qlogger');
-        logger = new QLogger();
-        logger.loglevel('info');
-        logger.addWriter(process.stdout);
-        filterBasic = require('qlogger/filters').filterBasic;
-        logger.addFilter(filterBasic);
+        qlogger = require('qlogger');
+        filters = require('qlogger/filters');
+        logger = qlogger('info', process.stdout);
+        logger.addFilter(filters.BasicFilter.create());
 
 And then
 
@@ -94,10 +94,14 @@ And then
         logger.error("Hello again.");
         // => 2014-11-22 15:03:38.483 [error] Hello again.
 
-Same as above, but more succinctly:
+The above, step by step:
 
-        logger = require('qlogger')('info', process.stdout);
-        logger.addFilter(require('qlogger/filters').filterBasic);
+        QLogger = require('qlogger');
+        logger = new QLogger();
+        logger.loglevel('info');
+        logger.addWriter(process.stdout);
+        BasicFilter = require('qlogger/filters').BasicFilter;
+        logger.addFilter(BasicFilter.create());
 
 Log to file using a write stream, formatting the log lines with a quick inline
 function (note: this is just as an example, file write streams are too slow to
@@ -226,8 +230,8 @@ very first filter added sees the raw unfiltered message.
         // => 
 
 Two very simple filters are included; each adds a timestamp and the loglevel.
-`filterBasic()` produces a plaintext logline, the `JsonFilter` a json bundle
-with fields "time", "level" and "message".  The json filter can log text or
+`BasicFilter` produces a plaintext logline, the `JsonFilter` a json bundle
+with fields "time", "level" and possibly "message".  The json filter can log text or
 objects, and can merge fields from a static template object into each logline.
 The standard fields "time", "level" and "message" in the template object are
 overwritten with the run-time values; this can be used to control the order
@@ -235,17 +239,17 @@ of the fields in the output.
 
 ### Built-In Filters
 
-#### filterBasic = require('qlogger/filters').filterBasic
+#### filter = require('qlogger/filters').BasicFilter.create()
 
-`filterBasic()` produces a plaintext logline with a human-readable timestamp
+`BasicFilter` produces a plaintext logline with a human-readable timestamp
 and the logelevel.
 
-        var filterBasic = require('qlogger/filters').filterBasic;
-        logger.addFilter(filterBasic);
+        var filter = require('qlogger/filters').BasicFilter.create();
+        logger.addFilter(filter);
         logger.info("Hello, world.")
-        // 2014-10-19 01:23:45.678 [info] Hello, world.
+        // => "2014-10-19 01:23:45.678 [info] Hello, world.\n"
 
-#### filterJson = require('qlogger/filters').JsonFilter.makeFilter( opts )
+#### filterJson = require('qlogger/filters').JsonFilter.create( template [,opts] )
 
 `filterJson()` logs a stringified json bundle that will always have fields
 "time", "level" and "message".  The time is a millisecond timestamp.  Other
@@ -267,7 +271,7 @@ To omit "level" from the logline, specify `level: false` in the template.
 The timestamp "time" will always be set.  "message" will be set if a string
 is logged.
 
-        var JsonFilter = require('qlogger/filters').JsonFilter;
+        var JsonFilter = require('qlogger/filters').JsonFilter.create();
         var loglineTemplate = {
             // the template defines the basic set of fields to log
             // and the order they will appear in.  If logging objects,
@@ -280,7 +284,7 @@ is logged.
             custom1: 123,
             message: 'will provide'
         };
-        filterJson = JsonFilter.makeFilter(loglineTemplate);
+        filterJson = JsonFilter.create(loglineTemplate);
         logger.addFilter(filterJson);
         logger.info("Hello, world.");
         // {"time":1414627805981,"level":"info","custom1":123,"message":"Hello, world."}
@@ -292,13 +296,13 @@ The default is JSON.stringify, but for simple json logging
 
 ### Timestamp formatting
 
-QLogger exports the simple timestamp formatter used by filterBasic.  It takes
+QLogger exports the simple timestamp formatter used by BasicFilter.  It takes
 a millisecond precision timestamp as returned by Date.now(), and formats an
 SQL-type ISO 9075 datetime string (YYYY-mm-dd HH:ii:ss, whole seconds, no
 timezone).  It's much faster than Date.toISOString, and much much faster than
 general-purpose timestamp formatters like moment or phpdate.
 
-filterBasic appends the milliseconds to the formatted timestamp separately, to
+BasicFilter appends the milliseconds to the formatted timestamp separately, to
 save having to repeatedly format the same time during busts.  Something like
 
         now = Date.now();
