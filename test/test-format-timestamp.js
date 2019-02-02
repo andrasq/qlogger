@@ -3,75 +3,168 @@
  * Licensed under the Apache License, Version 2.0
  */
 
-assert = require('assert');
+'use strict';
 
-formatIsoDate = require('../filters').formatIsoDate;
-formatIsoDateUtc = require('../filters').formatIsoDateUtc;
-formatNumericDateUtc = require('../filters').formatNumericDateUtc;
-pad2 = require('../lib/format-timestamp').pad2;
-pad3 = require('../lib/format-timestamp').pad3;
-pad4 = require('../lib/format-timestamp').pad4;
+var assert = require('assert');
+
+var filters = require('../filters');
+var formatTimestamp = require('../lib/format-timestamp');
 
 
 module.exports = {
     'should pad2': function(t) {
-        assert.equal(pad2(1), '01');
-        assert.equal(pad2(12), '12');
-        assert.equal(pad2(123), '123');
+        assert.equal(formatTimestamp.pad2(1), '01');
+        assert.equal(formatTimestamp.pad2(12), '12');
+        assert.equal(formatTimestamp.pad2(123), '123');
         t.done();
     },
 
     'should pad3': function(t) {
-        assert.equal(pad3(1), '001');
-        assert.equal(pad3(12), '012');
-        assert.equal(pad3(123), '123');
-        assert.equal(pad3(1234), '1234');
+        assert.equal(formatTimestamp.pad3(1), '001');
+        assert.equal(formatTimestamp.pad3(12), '012');
+        assert.equal(formatTimestamp.pad3(123), '123');
+        assert.equal(formatTimestamp.pad3(1234), '1234');
         t.done();
     },
 
     'should pad4': function(t) {
-        assert.equal(pad4(1), '0001');
-        assert.equal(pad4(12), '0012');
-        assert.equal(pad4(123), '0123');
-        assert.equal(pad4(1234), '01234');
-        assert.equal(pad4(12345), '12345');
+        assert.equal(formatTimestamp.pad4(1), '0001');
+        assert.equal(formatTimestamp.pad4(12), '0012');
+        assert.equal(formatTimestamp.pad4(123), '0123');
+        assert.equal(formatTimestamp.pad4(1234), '01234');
+        assert.equal(formatTimestamp.pad4(12345), '12345');
         t.done();
+    },
+
+    'should return timestamp': function(t) {
+        // setTimeout expire the current timestamp, to guarantee fresh
+        var t1 = Date.now();
+        setTimeout(function() {
+            var time = formatTimestamp.getTimestamp();
+            var t2 = Date.now();
+            t.ok(t1 <= time);
+            t.ok(time <= t2);
+            t.done();
+        });
+    },
+
+    'should return timestamp async': function(t) {
+        var t1 = Date.now();
+        formatTimestamp.getTimestampAsync(function(err, time) {
+            var t2 = Date.now();
+            // NOTE: can return a timestamp up to 1 ms off, setTimeout is not synchronized to the clock
+            t.ok(t1 - 1 <= time);
+            t.ok(time <= t2);
+            t.done();
+        });
     },
 
     'should format ISO timestamp': function(t) {
-        var msg = formatIsoDate(980271296000);
+        var msg = filters.formatIsoDate(980271296000);
         assert.equal(msg, '2001-01-23 12:34:56');
-        t.done();
+        setTimeout(function() {
+            var t1 = Date.now();
+            t.ok(t1 - t1 % 1000 <= new Date(filters.formatIsoDate()).getTime());
+            t.ok(new Date(filters.formatIsoDate()) <= new Date());
+            t.done();
+        })
     },
 
     'should format ISO UTC timestamp': function(t) {
-        var msg = formatIsoDateUtc(980271296000);
+        var msg = filters.formatIsoDateUtc(980271296000);
         assert.equal(msg, '2001-01-23 17:34:56');
-        t.done();
+        setTimeout(function() {
+            var t1 = Date.now();
+            t.ok(t1 - t1 % 1000 <= new Date(filters.formatIsoDateUtc() + ' UTC').getTime());
+            t.ok(new Date(filters.formatIsoDateUtc() + ' UTC') <= new Date());
+            t.done();
+        })
     },
 
     'should format numeric date': function(t) {
-        var msg = formatNumericDateUtc(980271296123);
+        var msg = filters.formatNumericDateUtc(980271296123);
         assert.equal(msg, '20010123173456.123');
-        t.done();
+        setTimeout(function() {
+            var t1 = filters.formatNumericDateUtc();
+            t.ok(+t1 <= +filters.formatNumericDateUtc());
+            t.ok(+filters.formatNumericDateUtc() <= +t1 + .005);
+            t.done();
+        })
+    },
+
+    'should format js iso timestamp': function(t) {
+        var msg = filters.formatJsDateIsoString(980271296123);
+        assert.equal(msg, '2001-01-23T17:34:56.123Z');
+        assert.equal(msg, new Date(980271296123).toISOString());
+        setTimeout(function() {
+            var t1 = Date.now();
+            t.ok(t1 <= new Date(filters.formatJsDateIsoString()).getTime());
+            t.ok(new Date(filters.formatJsDateIsoString()) <= new Date());
+            t.done();
+        })
+    },
+
+    'should format basic timestamp': function(t) {
+        var msg = filters.formatBasicDate(980271296123);
+        t.equal(msg, '2001-01-23 12:34:56.123');
+        setTimeout(function() {
+            var t1 = Date.now();
+            t.ok(t1 <= new Date(filters.formatBasicDate()).getTime());
+            t.ok(new Date(filters.formatBasicDate()) <= new Date());
+            t.done();
+        })
+    },
+
+    'Timebase': {
+        'should export expected methods': function(t) {
+            t.equal(typeof formatTimestamp.test.Timebase, 'function');
+            var tbase = new formatTimestamp.test.Timebase();
+            t.equal(typeof tbase.getTimestamp, 'function');
+            t.equal(typeof tbase.getTimestampAsync, 'function');
+            t.done();
+        },
+
+        'should fetch the current timestamp with refresh': function(t) {
+            var tbase = new formatTimestamp.test.Timebase();
+            var stub = t.stub(tbase, 'refresh', function(){ this.timestamp = 12345; return true });
+            t.equal(tbase.getTimestamp(), 12345);
+            stub.restore();
+            t.done();
+        },
+
+        'reresh should start only one timeout timer': function(t) {
+            var timebase = new formatTimestamp.test.Timebase();
+            t.ok(!timebase.timeoutTimer);
+            timebase.refresh();
+            var timer1 = timebase.timeoutTimer;
+            t.ok(timer1);
+            timebase.refresh();
+            var timer2 = timebase.timeoutTimer;
+            t.ok(timer2);
+            t.ok(timer1 === timer2);
+            t.done();
+        },
     },
 
     'speed': {
-        'format 100k timestamps': function(t) {
-            var i;
-            for (i=0; i<100000; i++) formatIsoDate(980271296000);
+        'format 100k formatIsoDate': function(t) {
+            for (var i=0; i<100000; i++) filters.formatIsoDate(980271296000);
             t.done();
         },
 
         'format 100k numericDateUtc': function(t) {
-            var i;
-            for (i=0; i<100000; i++) formatNumericDateUtc(980271296000);
+            for (var i=0; i<100000; i++) filters.formatNumericDateUtc(980271296000);
             t.done();
         },
 
-        'format 100k Date.toString': function(t) {
-            var i;
-            for (i=0; i<100000; i++) new Date(980271296000).toString();
+        'format 100k jsDateIsoString': function(t) {
+            for (var i=0; i<100000; i++) filters.formatJsDateIsoString(980271296000);
+            t.done();
+        },
+
+        'format 100k Date.toISOString': function(t) {
+            var i, dt = new Date(980271296000);
+            for (i=0; i<100000; i++) dt.toISOString();
             t.done();
         },
     },

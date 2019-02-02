@@ -7,3 +7,5 @@ var formatTimestamp = require('./lib/format-timestamp');
 module.exports.formatIsoDate = formatTimestamp.formatIsoDate;
 module.exports.formatIsoDateUtc = formatTimestamp.formatIsoDateUtc;
 module.exports.formatNumericDateUtc = formatTimestamp.formatNumericDateUtc;
+module.exports.formatJsDateIsoString = formatTimestamp.formatJsDateIsoString;
+module.exports.formatBasicDate = formatTimestamp.formatBasicDate;
