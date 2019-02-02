@@ -36,4 +36,13 @@ module.exports = {
         t.ok(msg.indexOf(buff.toString()) > 0);
         t.done();
     },
+
+    'test 100k filter-basic': function(t) {
+        var ret;
+        for (var i = 0; i<100000; i++) {
+            ret = filter("hello, world", 7);
+        }
+        t.done();
+        // 13m/s
+    },
 };
