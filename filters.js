@@ -2,13 +2,14 @@
 module.exports.filterBasic = require('./lib/filter-basic.js');
 module.exports.JsonFilter = require('./lib/filter-json.js');
 module.exports.BasicFilter = require('./lib/filter-basic.js').BasicFilter;
+module.exports.KubeFilter = require('./lib/filter-kube')
 
-var formatTimestamp = require('./lib/format-timestamp');
-module.exports.formatIsoDate = formatTimestamp.formatIsoDate;
-module.exports.formatIsoDateUtc = formatTimestamp.formatIsoDateUtc;
-module.exports.formatNumericDateUtc = formatTimestamp.formatNumericDateUtc;
-module.exports.formatJsDateIsoString = formatTimestamp.formatJsDateIsoString;
-module.exports.formatBasicDate = formatTimestamp.formatBasicDate;
+var timestamps = require('./lib/timestamps');
+module.exports.formatIsoDate = timestamps.formatIsoDate;
+module.exports.formatIsoDateUtc = timestamps.formatIsoDateUtc;
+module.exports.formatNumericDateUtc = timestamps.formatNumericDateUtc;
+module.exports.formatJsDateIsoString = timestamps.formatJsDateIsoString;
+module.exports.formatBasicDate = timestamps.formatBasicDate;
 
-module.exports.getTimestamp = formatTimestamp.getTimestamp;
-module.exports.getTimestampAsync = formatTimestamp.getTimestampAsync;
+module.exports.getTimestamp = timestamps.getTimestamp;
+module.exports.getTimestampAsync = timestamps.getTimestampAsync;

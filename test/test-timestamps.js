@@ -8,7 +8,7 @@
 var assert = require('assert');
 
 var filters = require('../filters');
-var formatTimestamp = require('../lib/format-timestamp');
+var formatTimestamp = require('../lib/timestamps');
 
 
 module.exports = {
