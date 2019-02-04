@@ -108,22 +108,37 @@ returns the old loglevel.
 
 ### addWriter( writerObject )
 
-Have the logger write log messages with the writer object.  The writerObject must
-have a method `write( string, callback )`.  The writer will be called with the
-already formatted log line.  Multiple writers are supported.  Writers are run
-in the order added, but are not serialized, and writers may complete out of
-order.  If the writer has a method `fflush( callback )` it will be used when
-flushing the data being written.
+Have the logger write log messages with the writer object.  The writerObject must have a
+method `write( string [,callback] )`.  The writer will be called with the already formatted
+log line.  Multiple writers are supported.  Writers are run in the order added, but are not
+serialized, and writers may complete out of order.  If the writer has a method `fflush(
+callback )` it will be used when flushing the buffered data.  Qlogger tries to snoop stream
+and socket objects to know whether they're busy, other objects should either have an
+`fflush` method or will not be checkpointable.
+
+A writer can be any object that records the message, for example:
+
+        const logger = qlogger();
+        logger.addWriter({
+            write: function(message, loglevel) {
+                const timestamp = new Date().toISOString();
+                const levelName = qlogger.LEVELNAMES[loglevel];
+                process.stdout.write(timestamp + ' [' + levelName + '] ' + message + '\n');
+            },
+            fflush: function fflush(callback) {
+                process.stdout.write("", callback);
+            }
+        })
 
 ### addFilter( filterFunction( message, loglevel ) )
 
-A filter modifies the log message before writing it, and returns the filtered
-string.  A final built-in filter makes sure that the string ends in a newline.
-Filters are applied in the order they were added.
+A filter is a function that modifies the message being logged before it is written.  It is
+passed two arguments, the message and the current numeric loglevel, and is expected to
+return the message to log.  If the final transformed message does not have a terminating
+newline, one will be added before writing.  Filters are applied in the order they were
+added.
 
-By using filters it is possible to daisy-chain or fan out loggers to have
-messages be observed by multiple loggers or logged by multiple agents.  The
-very first filter added sees the raw unfiltered message.
+If there is more than one filter on a logger, they will be run in the order added.
 
         QLogger = require('qlogger');
         logger = new QLogger('info', process.stdout);
@@ -138,6 +153,22 @@ very first filter added sees the raw unfiltered message.
         // => 2014-10-18T12:34:56.667Z [info] Hello, world.
         // => 2014-10-18T12:34:56.668Z [error] Done.
         // => 
+
+By using filters it is possible to daisy-chain or fan out loggers to have
+messages be observed by multiple loggers or logged by multiple agents.  The
+very first filter added sees the raw unfiltered message, each subsequent filter
+modifies the result string returned by the previous filter.
+
+        const logger = qlogger('info');
+        logger.addFilter(function(message, loglevel) {
+            return 'logger says: ' + message;
+        })
+        logger.addFilter(function(message, loglevel) {
+            return 'listen up, ' + message;
+        })
+
+        logger.info('hello, world.');
+        // => "listen up, logger says: hello, world.\n'
 
 A few simple filters are included with `qlogger`; see below.
 
@@ -314,46 +345,6 @@ Points to keep in mind when using logfiles for general-purpose data transport:
 
 The above safeguards are built into the `file://` type writers, with
 a reopen frequency of 0.05 seconds
-
-### Filters
-
-A filter is a function that transforms the message being logged.  The function is passed two
-arguments, the message and the current numeric loglevel, and is expected to return the
-message to log.  If the final transformed message does not have a terminating newline, one
-will be added.
-
-If there is more than one filter on a logger, they will be run in the order added.
-
-        const logger = qlogger('info');
-        logger.addFilter(function(message, loglevel) {
-            return 'logger says: ' + message;
-        })
-        logger.addFilter(function(message, loglevel) {
-            return 'listen up, my ' + message + '\n';
-        })
-
-        logger.info('hello, world.');
-        // => "listen up, my logger says: hello, world.\n'
-
-### Writers
-
-A writer is an object that records the message.  Writers must have a method `write` that
-will be invoked with the filtered message, and preferably a method `fflush` to use to flush
-their internal buffers.  Qlogger tries to snoop stream and socket objects to know whether
-they're busy, other objects should either have an `fflush` method or will not be
-checkpointable.
-
-        const logger = qlogger();
-        logger.addWriter({
-            write: function(message, loglevel) {
-                const timestamp = new Date().toISOString();
-                const levelName = qlogger.LEVELNAMES[loglevel];
-                process.stdout.write(timestamp + ' [' + levelName + '] ' + message + '\n');
-            },
-            fflush: function fflush(callback) {
-                process.stdout.write("", callback);
-            }
-        })
 
 ### Examples
 
