@@ -117,7 +117,8 @@ Have the logger write log messages with the writer object.  The writerObject mus
 have a method `write( string, callback )`.  The writer will be called with the
 already formatted log line.  Multiple writers are supported.  Writers are run
 in the order added, but are not serialized, and writers may complete out of
-order.
+order.  If the writer has a method `fflush( callback )` it will be used when
+flushing the data being written.
 
 ### addFilter( filterFunction( message, loglevel ) )
 
