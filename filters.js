@@ -2,7 +2,6 @@
 module.exports.filterBasic = require('./lib/filter-basic.js');
 module.exports.JsonFilter = require('./lib/filter-json.js');
 module.exports.BasicFilter = require('./lib/filter-basic.js').BasicFilter;
-module.exports.KubeFilter = require('./lib/filter-kube')
 
 var timestamps = require('./lib/timestamps');
 module.exports.formatIsoDate = timestamps.formatIsoDate;
