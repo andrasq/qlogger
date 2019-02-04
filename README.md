@@ -100,7 +100,7 @@ Log a debug message.  The logger must have loglevel of 'debug'.
 Tries to force all writers to write out any buffered data.  Invokes the
 callback once the writes have all finished.  This is a half-hearted
 implementation, since fflush can only flush write streams, tcp sockets and
-FileWriter (file://) objects.
+objects with an `fflush(cb)` method e.g. FileWriter (file://) objects.
 
 #### loglevel( [newLoglevel] )
 
