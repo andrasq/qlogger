@@ -409,13 +409,8 @@ For pure streaming line-oriented data transport, see
 [qfgets](https://www.npmjs.org/package/qfgets) for batched fgets().
 
 
-TODO
+Todo
 ----
 
-- only insert time/level/message into json logs if specified in template
-  (ie, if using the default template or present in the user-supplied template)
-  Omit them if not present in the supplied template.
-- maybe log to process.stdout by default instead of not writing?
-- make JsonFilter `time` use a function specified in the template
 - support a _printit(level, fmt, ...args) method for sprintf-formatted output
 - move the constants out into a separate file to not make filters load the dependencies
