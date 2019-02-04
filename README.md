@@ -213,6 +213,12 @@ The json encoding function to use can be specified in `opts.encode`.
 The default is JSON.stringify, but for simple json logging
 [json-simple](http://npmjs.org/package/json-simple) is 2x faster.
 
+Options:
+
+- `encode` - encoding function to use to serialize.  Default is `JSON.stringify`
+- `timestamp` - function to generate the timestamp value to include in the output,
+  eg `filters.formatJsDateIsoString()`.  Default is `filters.getTimestamp()`.
+
 ### Timestamp formatting
 
 QLogger exports the simple timestamp formatter used by BasicFilter.  It takes
@@ -269,11 +275,11 @@ Timing it, reusing a formatted timestamp results in 28% faster throughput.
 
 #### filters.getTimestamp( )
 
-Return the current millisecond timestamp, like `Date.now()`.  The current timestamp is
-cached and reused, with a timeout set to invalidate it when it expires.  If the event
-loop is blocked, the next few timestamps fetched may be stale (up to 50).  Yielding to
-the event loop with an asynchronous callback, setTimeout of setImmediate will refresh
-the timestamp.
+Return the current millisecond timestamp, like `new Date().getTime()`.  The current
+timestamp is cached and reused, with a `setTimeout` to invalidate it when it expires.
+If the event loop is blocked, the next few timestamps fetched may be stale (up to 50).
+Yielding to the event loop with an asynchronous callback, `setTimeout` or `setImmediate`
+will refresh the timestamp.
 
 #### filters.getTimestampAsync( callback(err, ms) )
 
