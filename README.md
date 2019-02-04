@@ -27,8 +27,11 @@ streaming engine, and can itself process data.
 
         const qlogger = require('qlogger');
         const filters = require('qlogger/filters');
-        const logger = qlogger('info', 'file:///var/log/myApp/app.log');
+
+        const logger = qlogger('info');
         logger.addFilter(filters.BasicFilter.create());
+        logger.addWriter(qlogger.createWriter('file:///var/log/myApp/app.log');
+
         logger.info('Hello, world.');
 
 
