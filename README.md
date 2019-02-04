@@ -144,13 +144,7 @@ very first filter added sees the raw unfiltered message.
         // => 2014-10-18T12:34:56.668Z [error] Done.
         // => 
 
-Two very simple filters are included; each adds a timestamp and the loglevel.
-`BasicFilter` produces a plaintext logline, the `JsonFilter` a json bundle
-with fields "time", "level" and possibly "message".  The json filter can log text or
-objects, and can merge fields from a static template object into each logline.
-The standard fields "time", "level" and "message" in the template object are
-overwritten with the run-time values; this can be used to control the order
-of the fields in the output.
+A few simple filters are included with `qlogger`; see below.
 
 ### Built-In Filters
 
