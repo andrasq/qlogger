@@ -9,9 +9,9 @@ QLogger is a a very fast logger, also a toolkit for building very fast loggers. 
 used out of the box as-is, or it can be easily configured in new ways for custom loggers.
 It's lean, fast, very flexible, and easy to use.
 
-The logger can log in any format, eg space-separated text or json bundles.  The
-formatters and writers are pluggable, use one of the defaults or use your
-own.
+The logger can log in any format, eg space-separated text or json bundles.  Formatting and
+writing is done by pluggable _filters_ that transform the log messages, and _writers_ that
+record them.  Use one of the several built in, or provide your own.
 
 The default writer `file://` is multi-process safe, it does not let line fragments from one
 logger overwrite or interleave with line fragments of another logger; each line is
@@ -51,8 +51,8 @@ to 'info'.  Internally, loglevels are converted to the standard unix syslog(2) l
 6 and 7.  As of version v1.4.0, all `syslog` loglevels are recognized:  'emerg', 'alert',
 'crit', 'err', 'warning', 'notice', 'info' and 'debug', along with 'all' and 'none'.
 
-The optional writer may be a writerObject (see addWriter below), or a writer specification
-string.  The latter will create one of the built-in writers using QLogger.createWriter().
+The optional `writer` may be a writerObject (see addWriter below), or a writer specification
+string.  The latter will create one of the built-in writers using `QLogger.createWriter()`.
 If no writerSpec is given, the logger will be created without a writer.  Writers can be
 added later at any time.  It is an error if the writer specification is not recognized.  The
 built-in writers are those supported by createWriter().
@@ -68,6 +68,9 @@ The recognized writer specifications are:
         stderr://                       // process.stderr
         tcp://<host>:<port>             // net.connect() tcp connection
         udp://<host>:<port>             // datagram
+
+The returned writer will have a method `write(str [,cb])`, and some also
+a method `fflush(cb)`.
 
 ### Logging Methods
 
