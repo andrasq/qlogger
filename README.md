@@ -69,7 +69,7 @@ The recognized writer specifications are:
         tcp://<host>:<port>             // net.connect() tcp connection
         udp://<host>:<port>             // datagram
 
-The returned writer will have a method `write(str [,cb])`, and some also
+The returned writer will have a method `write(str, cb)`, and some also
 a method `fflush(cb)`.
 
 ### Logging Methods
@@ -115,7 +115,7 @@ returns the old loglevel.
 ### addWriter( writerObject )
 
 Have the logger write log messages with the writer object.  The writerObject must have a
-method `write( string [,callback] )`.  The writer will be called with the already formatted
+method `write( string, callback )`.  The writer will be called with the already formatted
 log line.  Multiple writers are supported.  Writers are run in the order added, but are not
 serialized, and writers may complete out of order.  If the writer has a method `fflush(
 callback )` it will be used when flushing the buffered data.  Qlogger tries to snoop stream
@@ -126,10 +126,10 @@ A writer can be any object that records the message, for example:
 
         const logger = qlogger();
         logger.addWriter({
-            write: function(message, loglevel) {
+            write: function(message, callback) {
                 const timestamp = new Date().toISOString();
                 const levelName = qlogger.LEVELNAMES[loglevel];
-                process.stdout.write(timestamp + ' [' + levelName + '] ' + message + '\n');
+                process.stdout.write(timestamp + ' [' + levelName + '] ' + message + '\n', callback);
             },
             fflush: function fflush(callback) {
                 process.stdout.write("", callback);
