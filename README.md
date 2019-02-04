@@ -5,124 +5,42 @@ qlogger
 
 quick nodejs logging and newline delimited data transport
 
-QLogger is a toolkit for building very fast loggers.  It can be used out of
-the box as-is, or it can be easily configured in new ways for custom loggers.
-It's very lean, very fast, very flexible, and easy to use.
+QLogger is a a very fast logger, also a toolkit for building very fast loggers.  It can be
+used out of the box as-is, or it can be easily configured in new ways for custom loggers.
+It's lean, fast, very flexible, and easy to use.
 
-It can log in any format, eg space-separated text or json bundles.  The
+The logger can log in any format, eg space-separated text or json bundles.  The
 formatters and writers are pluggable, use one of the defaults or use your
 own.
 
-How fast?  On my system I get 650k 200 byte lines per second saved to a shared
+The default writer `file://` is multi-process safe, it does not let line fragments from one
+logger overwrite or interleave with line fragments of another logger; each line is
+guaranteed to be logged in its entirety.
+
+And it's nice and fast.  On my system I get 1450k 200 byte lines per second saved to a shared
 logfile under LOCK_EX mutex
-(using [qfputs](https://www.npmjs.org/package/qfputs) as the writer and logging
-only 2 lines per continuable; 1.1m per sec if logging 5 lines per continuable).
+(writing with [qfputs](https://www.npmjs.org/package/qfputs) without filtering,
+or 850k/sec if also adding a timestamp and the loglevel.
 
 A slow logger can report on the data being processed.  A fast logger is a data
 streaming engine, and can itself process data.
 
-        var QLogger = require('qlogger');
-        var logger = new QLogger('info', 'file:///var/log/myapp/app.log');
-        logger.addFilter(require('qlogger/filters').filterBasic);
+        const qlogger = require('qlogger');
+        const filters = require('qlogger/filters');
 
-Installation
-------------
+        const logger = qlogger('info');
+        logger.addFilter(filters.BasicFilter.create());
+        logger.addWriter(qlogger.createWriter('file:///var/log/myApp/app.log');
 
-        npm install qlogger
+        logger.info('Hello, world.');
 
-Unit test:
 
-        npm test qlogger
-
-Speed test (log 100k timestamped 200 byte lines):
-
-        node node_modules/qlogger/benchmark.js
-
-Structure
----------
-
-QLogger sends newline-delimited strings (messages) to writers.  The strings
-may be edited in flight by filters.  Filters return the modified string, and
-can annotate it with timestamp, loglevel, hostname, etc., or serialize objects
-for export.  Writers deliver the strings to their detaination.
-
-Writers can be added to write to file, send over TCP/IP, send to syslog, etc.
-The strings can be modified in flight by filters, which will write the altered
-string.  Common filters would be to add a timestap and the message loglevel.
-Writers and filters must be configured explicitly, there is no default.
-
-QLogger exports a simplified subset of the traditional logging methods:
-error, info, and debug.  Each log message is appended to the logfile
-as a newline terminated string.
-
-Newline delimited text is a universally compatible, easy-to-parse and
-very very fast way to stream and process data.
-
-Points to keep in mind when using logfiles for general-purpose data transport:
-  - the logfile might have multiple writers and unix writes are not atomic,
-    ie writes need a mutex (write-write mutex, eg flock(LOCK_EX))
-  - the logfile might be consumed by simple readers that do not tolerate
-    partial writes, so each write should be a complete newline terminated
-    message (ie, hold the lock for the duration of the write)
-  - the reader might itself modify the logfile (eg compact it), so
-    writes need a mutex (read-write mutex, eg flock(LOCK_EX))
-  - the logfile might get consumed (renamed or removed), ie cannot reuse the
-    file handle indefinitely, must reopen the file periodically
-  - the logfile could be used for low-latency buffering, so the reopen
-    interval should be pretty short (all consumers of the logfile must
-    wait out the reopen interval to ensure that activity has settled
-    before moving on from the file)
-
-### Examples
-
-Log to stdout, formatting the log lines with the basic plaintext filter.  Step
-by step:
-
-        QLogger = require('qlogger');
-        logger = new QLogger();
-        logger.loglevel('info');
-        logger.addWriter(process.stdout);
-        filterBasic = require('qlogger/filters').filterBasic;
-        logger.addFilter(filterBasic);
-
-And then
-
-        logger.info("Hello, world.");
-        // => 2014-11-22 15:03:38.482 [info] Hello, world.
-        logger.debug("debug messages not on");
-        // =>
-        logger.error("Hello again.");
-        // => 2014-11-22 15:03:38.483 [error] Hello again.
-
-Same as above, but more succinctly:
-
-        logger = require('qlogger')('info', process.stdout);
-        logger.addFilter(require('qlogger/filters').filterBasic);
-
-Log to file using a write stream, formatting the log lines with a quick inline
-function (note: this is just as an example, file write streams are too slow to
-use where speed matters):
-
-        fs = require('fs');
-        QLogger = require('qlogger');
-        logger = new QLogger('info', fs.createWriteStream('app.log', 'a'));
-        logger.addFilter(function(msg, level) {
-            return new Date().toISOString + " " + msg;
-        });
-
-Log to file using a qfputs FileWriter, without any additional formatting.
-This can stream over 100MB/sec of data one line at a time to a
-mutex-controlled shared logfile.
-
-        QLogger = require('qlogger');
-        logger = new QLogger('info', QLogger.createWriter('file://app.log', 'a'));
-
-Methods
--------
+API
+---
 
 ### new QLogger( [loglevel], [writer] )
 
-Create a logger that will log messages of importance loglevel or above.  It is
+Create a logger that will log messages of `loglevel` importance or above.  It is
 an error if the loglevel is not recognized.
 
 Loglevel can be specified as a string 'error', 'info' or 'debug'.  If
@@ -226,8 +144,8 @@ very first filter added sees the raw unfiltered message.
         // => 
 
 Two very simple filters are included; each adds a timestamp and the loglevel.
-`filterBasic()` produces a plaintext logline, the `JsonFilter` a json bundle
-with fields "time", "level" and "message".  The json filter can log text or
+`BasicFilter` produces a plaintext logline, the `JsonFilter` a json bundle
+with fields "time", "level" and possibly "message".  The json filter can log text or
 objects, and can merge fields from a static template object into each logline.
 The standard fields "time", "level" and "message" in the template object are
 overwritten with the run-time values; this can be used to control the order
@@ -235,39 +153,40 @@ of the fields in the output.
 
 ### Built-In Filters
 
-#### filterBasic = require('qlogger/filters').filterBasic
+#### filterBasic = require('qlogger/filters').BasicFilter.create()
 
-`filterBasic()` produces a plaintext logline with a human-readable timestamp
+`BasicFilter` produces a plaintext logline with a human-readable timestamp
 and the logelevel.
 
-        var filterBasic = require('qlogger/filters').filterBasic;
-        logger.addFilter(filterBasic);
+        var filter = require('qlogger/filters').BasicFilter.create();
+        logger.addFilter(filter);
         logger.info("Hello, world.")
-        // 2014-10-19 01:23:45.678 [info] Hello, world.
+        // => "2014-10-19 01:23:45.678 [info] Hello, world.\n"
 
-#### filterJson = require('qlogger/filters').JsonFilter.makeFilter( opts )
+#### filterJson = require('qlogger/filters').JsonFilter.create( template [,opts] )
 
-`filterJson()` logs a stringified json bundle that will always have fields
-"time", "level" and "message".  The time is a millisecond timestamp.  Other
-fields are copied from the message object being logged (unless a string).
-filterJson is constructed by the JsonFilter class.
+`filterJson(message, level)` logs a stringified json bundle with fields "time",
+"level" and possibly "message" (unless explicitly disabled by setting them to
+`false`).  `time` is a millisecond timestamp, `level` is the name of the message
+loglevel.  Other fields are copied from the message object being logged (unless not an
+object, in which case the bundle `message` property is set to the logged value).
 
-The json filter can merge fields from a static template into each logline.
-The logged bundle fields will contain the template fields, the standard
-fields, then all other fields on the logged object, in that order.  The
-template can be used to add static info to each logline (e.g. host, version)
-and to control the order of the fields in the output.
+The json filter can merge fields from a static template into each logline.  The logged
+bundle fields will contain the template fields, the standard fields, then all other
+fields on the logged object, in that order.  The template can be used to add static
+info to each logline (e.g. hostname, version) and to control the order of the fields
+in the output.
 
 The standard fields "time", "level" and "message" (and "error" if logging an
 Error object), are replaced with run-time values.  If the message itself
 contains time, level or message, the fields from the message will be the ones
 output.
 
-To omit "level" from the logline, specify `level: false` in the template.
-The timestamp "time" will always be set.  "message" will be set if a string
-is logged.
+To omit "time" or "level" from the logline, set them to `false` in the template.
+`message` cannot be disabled, since it is automatically set to the logged value
+when logging non-objects; is not used otherwise.
 
-        var JsonFilter = require('qlogger/filters').JsonFilter;
+        var JsonFilter = require('qlogger/filters').JsonFilter.create();
         var loglineTemplate = {
             // the template defines the basic set of fields to log
             // and the order they will appear in.  If logging objects,
@@ -280,25 +199,35 @@ is logged.
             custom1: 123,
             message: 'will provide'
         };
-        filterJson = JsonFilter.makeFilter(loglineTemplate);
+        filterJson = JsonFilter.create(loglineTemplate);
         logger.addFilter(filterJson);
+
         logger.info("Hello, world.");
         // {"time":1414627805981,"level":"info","custom1":123,"message":"Hello, world."}
+
         logger.info(new Error("oops"));
+        // {"time":1414627805981,"level":"info","custom1":123,"message":"Error: oops",
+        //  "error":{"code":undefined,"message":"oops","stack":"Error: oops\n    at ..."}}
 
 The json encoding function to use can be specified in `opts.encode`.
 The default is JSON.stringify, but for simple json logging
 [json-simple](http://npmjs.org/package/json-simple) is 2x faster.
 
+Options:
+
+- `encode` - encoding function to use to serialize.  Default is `JSON.stringify`
+- `timestamp` - function to generate the timestamp value to include in the output,
+  eg `filters.formatJsDateIsoString()`.  Default is `filters.getTimestamp()`.
+
 ### Timestamp formatting
 
-QLogger exports the simple timestamp formatter used by filterBasic.  It takes
+QLogger exports the simple timestamp formatter used by BasicFilter.  It takes
 a millisecond precision timestamp as returned by Date.now(), and formats an
 SQL-type ISO 9075 datetime string (YYYY-mm-dd HH:ii:ss, whole seconds, no
 timezone).  It's much faster than Date.toISOString, and much much faster than
 general-purpose timestamp formatters like moment or phpdate.
 
-filterBasic appends the milliseconds to the formatted timestamp separately, to
+BasicFilter appends the milliseconds to the formatted timestamp separately, to
 save having to repeatedly format the same time during busts.  Something like
 
         now = Date.now();
@@ -311,7 +240,7 @@ logging a line to a file itself is just 1.5 microseconds (per line, average).
 Timing it, reusing a formatted timestamp results in 28% faster throughput.
 
 
-#### formatIsoDate( timestamp )
+#### filters.formatIsoDate( [timestamp] )
 
         var formatIsoDate = require('qlogger/filters').formatIsoDate;
         var timestamp = Date.now();
@@ -319,11 +248,179 @@ Timing it, reusing a formatted timestamp results in 28% faster throughput.
         var time = formatIsoDate(timestamp);
         // => 2014-10-29 20:10:05
 
-#### formatIsoDateUtc( timestamp )
+#### filters.formatIsoDateUtc( [timestamp] )
 
         var formatIsoDateUTC = require('qlogger/filters').formatIsoDateUtc;
         var time = formatIsoDate(1414627805981);
         // => 2014-10-30 00:10:05
+
+#### filters.formatNumericDateUtc( [timestamp] )
+
+        filters.formatNumericDateUtc();
+        // => "20190203194104.461"
+
+#### filters.formatJsDateIsoString( [timestamp] )
+
+        filters.formatJsDateIsoString();
+        // => "2019-02-03T19:41:04.461Z"
+
+#### filters.formatBasicDate( [timestamp] )
+
+        filters.formatBasicDate();
+        // => "2019-02-03 19:41:04.461"
+
+### Timestamps
+
+        const filters = require('qlogger/filters');
+
+#### filters.getTimestamp( )
+
+Return the current millisecond timestamp, like `new Date().getTime()`.  The current
+timestamp is cached and reused, with a `setTimeout` to invalidate it when it expires.
+If the event loop is blocked, the next few timestamps fetched may be stale (up to 50).
+Yielding to the event loop with an asynchronous callback, `setTimeout` or `setImmediate`
+will refresh the timestamp.
+
+#### filters.getTimestampAsync( callback(err, ms) )
+
+Return the current millisecond timestamp, guaranteed to not be stale.  Freshness is
+ensured to within a millisecond of the actual wallclock time by wrapping the callback
+in a `setImmediate`, thus letting the timestamp expire first in case the event loop
+had been blocked.
+
+
+Structure
+---------
+
+QLogger sends newline-delimited strings (messages) to writers.  The strings
+may be edited in flight by filters.  Filters return the modified string, and
+can annotate it with timestamp, loglevel, hostname, etc., or serialize objects
+for export.  Writers deliver the strings to their detaination.
+
+Newline delimited text is a universally compatible, easy to scan, and very very fast
+way to stream and process data.
+
+Writers can be added to write to file, send over TCP/IP, send to syslog, etc.
+The messages can be modified in flight by filters, causing the altered message to
+be written.  Common filters would be to add a timestap and the message loglevel.
+Writers and filters must be configured explicitly, there is no default.
+Each logger supports multiple filters and multiple writers.
+
+Qlogger exports the full set of the `syslog(2)` log reporting levels, from emerg() to
+debug():
+
+    #define LOG_EMERG       0       /* system is unusable */
+    #define LOG_ALERT       1       /* action must be taken immediately */
+    #define LOG_CRIT        2       /* critical conditions */
+    #define LOG_ERR         3       /* error conditions */
+    #define LOG_WARNING     4       /* warning conditions */
+    #define LOG_NOTICE      5       /* normal but significant condition */
+    #define LOG_INFO        6       /* informational */
+    #define LOG_DEBUG       7       /* debug-level messages */QLogger.ERROR = 3;
+
+Points to keep in mind when using logfiles for general-purpose data transport:
+  - the logfile might have multiple writers and unix writes are not atomic,
+    ie writes need a mutex (write-write mutex, eg flock(LOCK_EX))
+  - the logfile might be consumed by simple readers that do not tolerate
+    partial writes, so each write should be a complete newline terminated
+    message (ie, hold the lock for the duration of the write)
+  - the reader might itself modify the logfile (eg compact it), so
+    writes need a mutex (read-write mutex, eg flock(LOCK_EX))
+  - the logfile might get consumed (renamed or removed), ie cannot reuse the
+    file handle indefinitely, must reopen the file periodically
+  - the logfile could be used for low-latency buffering, so the reopen
+    interval should be pretty short (all consumers of the logfile must
+    wait out the reopen interval to ensure that activity has settled
+    before moving on from the file)
+
+The above safeguards are built into the `file://` type writers, with
+a reopen frequency of 0.05 seconds
+
+### Filters
+
+A filter is a function that transforms the message being logged.  The function is passed two
+arguments, the message and the current numeric loglevel, and is expected to return the
+message to log.  If the final transformed message does not have a terminating newline, one
+will be added.
+
+If there is more than one filter on a logger, they will be run in the order added.
+
+        const logger = qlogger('info');
+        logger.addFilter(function(message, loglevel) {
+            return 'logger says: ' + message;
+        })
+        logger.addFilter(function(message, loglevel) {
+            return 'listen up, my ' + message + '\n';
+        })
+
+        logger.info('hello, world.');
+        // => "listen up, my logger says: hello, world.\n'
+
+### Writers
+
+A writer is an object that records the message.  Writers must have a method `write` that
+will be invoked with the filtered message, and preferably a method `fflush` to use to flush
+their internal buffers.  Qlogger tries to snoop stream and socket objects to know whether
+they're busy, other objects should either have an `fflush` method or will not be
+checkpointable.
+
+        const logger = qlogger();
+        logger.addWriter({
+            write: function(message, loglevel) {
+                const timestamp = new Date().toISOString();
+                const levelName = qlogger.LEVELNAMES[loglevel];
+                process.stdout.write(timestamp + ' [' + levelName + '] ' + message + '\n');
+            },
+            fflush: function fflush(callback) {
+                process.stdout.write("", callback);
+            }
+        })
+
+### Examples
+
+Log to stdout, formatting the log lines with the basic plaintext filter:
+
+        qlogger = require('qlogger');
+        filters = require('qlogger/filters');
+        logger = qlogger('info', process.stdout);
+        logger.addFilter(filters.BasicFilter.create());
+
+And then
+
+        logger.info("Hello, world.");
+        // => 2014-11-22 15:03:38.482 [info] Hello, world.
+        logger.debug("debug messages not on");
+        // =>
+        logger.error("Hello again.");
+        // => 2014-11-22 15:03:38.483 [error] Hello again.
+
+The above, step by step:
+
+        QLogger = require('qlogger');
+        logger = new QLogger();
+        logger.loglevel('info');
+        logger.addWriter(process.stdout);
+        BasicFilter = require('qlogger/filters').BasicFilter;
+        logger.addFilter(BasicFilter.create());
+
+Log to file using a write stream, formatting the log lines with a quick inline
+function (note: this is just as an example, file write streams are too slow to
+use where speed matters):
+
+        fs = require('fs');
+        QLogger = require('qlogger');
+        logger = new QLogger('info', fs.createWriteStream('app.log', 'a'));
+        logger.addFilter(function(msg, level) {
+            return new Date().toISOString + " " + msg;
+        });
+
+Log to file using a qfputs FileWriter, without any additional formatting.
+This can stream over 100MB/sec of data one line at a time to a
+mutex-controlled shared logfile.
+
+        QLogger = require('qlogger');
+        logger = new QLogger('info', QLogger.createWriter('file://app.log', 'a'));
+
 
 Related
 -------

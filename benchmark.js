@@ -17,6 +17,7 @@ QLogger = require('./index');
 
 log = new QLogger('info', 'file://' + logfileName);
 if (useFilter) log.addFilter(require('./filters').filterBasic);
+//if (useFilter) log.addFilter(require('./filters').JsonFilter.create());
 
 message = new Array(199).join("x") + "\n";
 
@@ -35,5 +36,3 @@ nlines = 100000;
         });
     }
 })();
-
-

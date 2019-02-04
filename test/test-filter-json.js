@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2014 Andras Radics
+ * Copyright (C) 2014.2019 Andras Radics
  * Licensed under the Apache License, Version 2.0
  */
 
@@ -13,7 +13,7 @@ module.exports = {
             uniqid: this.uniqid,
             level: true,
         };
-        this.jsonFilter = new JsonFilter(this.template);
+        this.jsonFilter = new JsonFilter({ template: this.template });
         this.filter = function(msg, level){ return this.jsonFilter.filter(msg, level) };
         done();
     },
@@ -36,12 +36,13 @@ module.exports = {
         t.done();
     },
 
-    'should emit valid json object': function(t) {
+    'should emit valid json object with the string as the message': function(t) {
         var json = this.filter("log line text", 6);
         t.ok(json);
         t.equal(json[0], '{');
         t.equal(json[json.length-1], '}');
         t.equal(typeof JSON.parse(json), 'object');
+        t.equal(JSON.parse(json).message, 'log line text');
         t.done();
     },
 
@@ -49,7 +50,14 @@ module.exports = {
         var t1 = Date.now();
         var bundle = JSON.parse(this.filter("", 6));
         var t2 = Date.now();
-        t.ok(t1 <= bundle.time && bundle.time <= t2);
+        var time = new Date(bundle.time).getTime();
+        t.ok(t1-5 <= time && time <= t2);
+        t.done();
+    },
+
+    'should use provided timestamp': function(t) {
+        var bundle = JSON.parse(this.filter({ time: 12345 }, 6));
+        t.equal(bundle.time, 12345);
         t.done();
     },
 
@@ -84,8 +92,9 @@ module.exports = {
 
     'should use all defaults': function(t) {
         var filter = new JsonFilter();
+        t.strictEqual(filter.includeTime, true);
         t.strictEqual(filter.includeLoglevel, true);
-        t.strictEqual(filter.template.message, '');
+        t.strictEqual(filter.template.message, undefined);
         t.done();
     },
 
@@ -93,7 +102,24 @@ module.exports = {
         var filterFunction = JsonFilter.makeFilter();
         var filtered = filterFunction('my test message');
         t.contains(filtered, '"time":');
+        t.contains(filtered, '"level":');
         t.contains(filtered, '"my test message"');
+        t.done();
+    },
+
+    'should still add timestamp and level with empty template': function(t) {
+        var filterFunction = JsonFilter.makeFilter({});
+        var filtered = filterFunction('my test message');
+        t.contains(filtered, '"time":');
+        t.contains(filtered, '"level":');
+        t.contains(filtered, '"message":');
+        t.done();
+    },
+
+    'should be able to turn off all default fields': function(t) {
+        var filter = JsonFilter.makeFilter({ time: false, level: false });
+        t.equal(filter({}), "{}");
+        t.equal(filter('my test message'), '{"message":"my test message"}');
         t.done();
     },
 
@@ -103,6 +129,12 @@ module.exports = {
         t.equal(bundle.b, 2);
         t.equal(bundle.c, 3);
         t.equal(bundle.level, 'info');
+        t.done();
+    },
+
+    'should log a string as the message': function(t) {
+        var bundle = JSON.parse(this.filter('test ' + this.uniqid, 6));
+        t.equal(bundle.message, 'test ' + this.uniqid);
         t.done();
     },
 
@@ -116,12 +148,20 @@ module.exports = {
         t.done();
     },
 
-    'test 10k filter-json': function(t) {
+    'should tolerate unserializable objects': function(t) {
+        var obj = {};
+        obj.self = obj;
+        var bundle = JSON.parse(this.filter(obj, 6));
+        t.equal(bundle.message, '[unserializable object]');
+        t.done();
+    },
+
+    'test 100k filter-json': function(t) {
         var ret;
-        for (var i = 0; i<10000; i++) {
+        for (var i = 0; i<100000; i++) {
             ret = this.filter({a: 1, b: 2});
         }
         t.done();
-        // 200k/s
+        // 875k/s
     },
 };

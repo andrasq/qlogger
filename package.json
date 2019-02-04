@@ -1,7 +1,7 @@
 {
   "name": "qlogger",
-  "version": "1.5.3",
-  "description": "very fast easily customizable logger and newline delimited data transport",
+  "version": "1.6.0",
+  "description": "very fast easily customizable logger",
   "license": "Apache-2.0",
   "main": "index.js",
 
@@ -21,6 +21,6 @@
   "scripts": {
     "test": "env TZ=America/New_York qnit test",
     "coverage": "nyc --reporter lcov --reporter text npm test",
-    "clean": "rm -rf .nyc_output coverage"
+    "clean": "rm -rf .nyc_output coverage npm-debug.log"
   }
 }
