@@ -13,9 +13,9 @@ The logger can log in any format, eg space-separated text or json bundles.  Form
 writing is done by pluggable _filters_ that transform the log messages, and _writers_ that
 record them.  Use one of the several built in, or provide your own.
 
-The default writer `file://` is multi-process safe, it does not let line fragments from one
-logger overwrite or interleave with line fragments of another logger; each line is
-guaranteed to be logged in its entirety.
+The built-in createWriter built writer of type `file://` is multi-process safe, it does not
+let line fragments from one logger overwrite or interleave with line fragments of another
+logger; each line is guaranteed to be logged in its entirety.
 
 And it's nice and fast.  On my system I get 1450k 200 byte lines per second saved to a shared
 logfile under LOCK_EX mutex
