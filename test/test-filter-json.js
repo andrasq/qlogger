@@ -15,7 +15,8 @@ module.exports = {
         };
         this.jsonFilter = new JsonFilter({ template: this.template });
         this.filter = function(msg, level){ return this.jsonFilter.filter(msg, level) };
-        done();
+        // start the test after first having allowed the event loop a chance to run
+        setImmediate(done);
     },
 
     'makeFilter should return bound filter function': function(t) {

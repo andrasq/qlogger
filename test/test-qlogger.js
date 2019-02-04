@@ -209,10 +209,7 @@ module.exports = {
             server.on('error', function(err) {
                 t.done(err);
             })
-            server.listen(1337, 'localhost');
-
-            // allow time for the server to start, else test can fail
-            setTimeout(function() {
+            server.listen(1337, 'localhost', function(){
                 var writer = QLogger.createWriter('tcp://localhost:1337');
                 writer.on('error', function() {
                     t.ok(false, "no localhost tcp server, unable to test tcp");
@@ -225,7 +222,7 @@ module.exports = {
                         t.done();
                     });
                 });
-            }, 20);
+            })
         },
 
         'should create udp:// writer': function(t) {
