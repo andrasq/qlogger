@@ -9,3 +9,6 @@ module.exports.formatIsoDateUtc = formatTimestamp.formatIsoDateUtc;
 module.exports.formatNumericDateUtc = formatTimestamp.formatNumericDateUtc;
 module.exports.formatJsDateIsoString = formatTimestamp.formatJsDateIsoString;
 module.exports.formatBasicDate = formatTimestamp.formatBasicDate;
+
+module.exports.getTimestamp = formatTimestamp.getTimestamp;
+module.exports.getTimestampAsync = formatTimestamp.getTimestampAsync;

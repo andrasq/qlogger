@@ -8,6 +8,7 @@
 - make formatters default to current time, timestamps optional
 - expose the BasicFilter implementation class
 - expose a `create` method on the built-in filters
+- expose filters.getTimestamp and getTimestampAsync
 
 1.5.0 2017-12-29
 
