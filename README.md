@@ -205,8 +205,7 @@ when logging non-objects; is not used otherwise.
         //  "error":{"code":undefined,"message":"oops","stack":"Error: oops\n    at ..."}}
 
 The json encoding function to use can be specified in `opts.encode`.
-The default is JSON.stringify, but for simple json logging
-[json-simple](http://npmjs.org/package/json-simple) is 2x faster.
+The default is `JSON.stringify`.
 
 Options:
 
@@ -216,24 +215,9 @@ Options:
 
 ### Timestamp formatting
 
-QLogger exports the simple timestamp formatter used by BasicFilter.  It takes
-a millisecond precision timestamp as returned by Date.now(), and formats an
-SQL-type ISO 9075 datetime string (YYYY-mm-dd HH:ii:ss, whole seconds, no
-timezone).  It's much faster than Date.toISOString, and much much faster than
-general-purpose timestamp formatters like moment or phpdate.
-
-BasicFilter appends the milliseconds to the formatted timestamp separately, to
-save having to repeatedly format the same time during busts.  Something like
-
-        now = Date.now();
-        msec = now % 1000;
-        str = formatIsoDate(now - msec);
-        str += "." + (msec >= 100 ? msec : msec >= 10 ? "0" + msec : "00" + msec);
-
-Note that although formatting the timestamp takes only .5 microseconds,
-logging a line to a file itself is just 1.5 microseconds (per line, average).
-Timing it, reusing a formatted timestamp results in 28% faster throughput.
-
+QLogger exports a few simple timestamp formatters.  The formatters take a millisecond
+timestamp as returned by `Date.now()`, and convert it to a datetime string.  The formatters
+are optimized to be esepcially fast for clustered timestamps, many close together.
 
 #### filters.formatIsoDate( [timestamp] )
 
@@ -265,6 +249,9 @@ Timing it, reusing a formatted timestamp results in 28% faster throughput.
         // => "2019-02-03 19:41:04.461"
 
 ### Timestamps
+
+`qlogger` exports its source of high-speed millisecond timestamps.  These timestamps
+are also tuned for groups of reads close together.
 
         const filters = require('qlogger/filters');
 
