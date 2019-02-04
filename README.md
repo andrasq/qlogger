@@ -282,7 +282,7 @@ of the fields in the output.
 
 ### Built-In Filters
 
-#### filter = require('qlogger/filters').BasicFilter.create()
+#### filterBasic = require('qlogger/filters').BasicFilter.create()
 
 `BasicFilter` produces a plaintext logline with a human-readable timestamp
 and the logelevel.
@@ -294,25 +294,26 @@ and the logelevel.
 
 #### filterJson = require('qlogger/filters').JsonFilter.create( template [,opts] )
 
-`filterJson()` logs a stringified json bundle that will always have fields
-"time", "level" and "message".  The time is a millisecond timestamp.  Other
-fields are copied from the message object being logged (unless a string).
-filterJson is constructed by the JsonFilter class.
+`filterJson(message, level)` logs a stringified json bundle with fields "time",
+"level" and possibly "message" (unless explicitly disabled by setting them to
+`false`).  `time` is a millisecond timestamp, `level` is the name of the message
+loglevel.  Other fields are copied from the message object being logged (unless not an
+object, in which case the bundle `message` property is set to the logged value).
 
-The json filter can merge fields from a static template into each logline.
-The logged bundle fields will contain the template fields, the standard
-fields, then all other fields on the logged object, in that order.  The
-template can be used to add static info to each logline (e.g. host, version)
-and to control the order of the fields in the output.
+The json filter can merge fields from a static template into each logline.  The logged
+bundle fields will contain the template fields, the standard fields, then all other
+fields on the logged object, in that order.  The template can be used to add static
+info to each logline (e.g. hostname, version) and to control the order of the fields
+in the output.
 
 The standard fields "time", "level" and "message" (and "error" if logging an
 Error object), are replaced with run-time values.  If the message itself
 contains time, level or message, the fields from the message will be the ones
 output.
 
-To omit "level" from the logline, specify `level: false` in the template.
-The timestamp "time" will always be set.  "message" will be set if a string
-is logged.
+To omit "time" or "level" from the logline, set them to `false` in the template.
+`message` cannot be disabled, since it is automatically set to the logged value
+when logging non-objects; is not used otherwise.
 
         var JsonFilter = require('qlogger/filters').JsonFilter.create();
         var loglineTemplate = {
@@ -358,7 +359,7 @@ logging a line to a file itself is just 1.5 microseconds (per line, average).
 Timing it, reusing a formatted timestamp results in 28% faster throughput.
 
 
-#### formatIsoDate( timestamp )
+#### filters.formatIsoDate( [timestamp] )
 
         var formatIsoDate = require('qlogger/filters').formatIsoDate;
         var timestamp = Date.now();
@@ -366,11 +367,46 @@ Timing it, reusing a formatted timestamp results in 28% faster throughput.
         var time = formatIsoDate(timestamp);
         // => 2014-10-29 20:10:05
 
-#### formatIsoDateUtc( timestamp )
+#### filters.formatIsoDateUtc( [timestamp] )
 
         var formatIsoDateUTC = require('qlogger/filters').formatIsoDateUtc;
         var time = formatIsoDate(1414627805981);
         // => 2014-10-30 00:10:05
+
+#### filters.formatNumericDateUtc( [timestamp] )
+
+        filters.formatNumericDateUtc();
+        // => "20190203194104.461"
+
+#### filters.formatJsDateIsoString( [timestamp] )
+
+        filters.formatJsDateIsoString();
+        // => "2019-02-03T19:41:04.461Z"
+
+#### filters.formatBasicDate( [timestamp] )
+
+        filters.formatBasicDate();
+        // => "2019-02-03 19:41:04.461"
+
+### Timestamps
+
+        const filters = require('qlogger/filters');
+
+#### filters.getTimestamp( )
+
+Return the current millisecond timestamp, like `Date.now()`.  The current timestamp is
+cached and reused, with a timeout set to invalidate it when it expires.  If the event
+loop is blocked, the next few timestamps fetched may be stale (up to 50).  Yielding to
+the event loop with an asynchronous callback, setTimeout of setImmediate will refresh
+the timestamp.
+
+#### filters.getTimestampAsync( callback(err, ms) )
+
+Return the current millisecond timestamp, guaranteed to not be stale.  Freshness is
+ensured to within a millisecond of the actual wallclock time by wrapping the callback
+in a `setImmediate`, thus letting the timestamp expire first in case the event loop
+had been blocked.
+
 
 Related
 -------
