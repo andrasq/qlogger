@@ -5,18 +5,22 @@ qlogger
 
 quick nodejs logging and newline delimited data transport
 
-QLogger is a toolkit for building very fast loggers.  It can be used out of
-the box as-is, or it can be easily configured in new ways for custom loggers.
-It's very lean, very fast, very flexible, and easy to use.
+QLogger is a a very fast logger, also a toolkit for building very fast loggers.  It can be
+used out of the box as-is, or it can be easily configured in new ways for custom loggers.
+It's lean, fast, very flexible, and easy to use.
 
-It can log in any format, eg space-separated text or json bundles.  The
+The logger can log in any format, eg space-separated text or json bundles.  The
 formatters and writers are pluggable, use one of the defaults or use your
 own.
 
-How fast?  On my system I get 650k 200 byte lines per second saved to a shared
+The default writer `file://` is multi-process safe, it does not let line fragments from one
+logger overwrite or interleave with line fragments of another logger; each line is
+guaranteed to be logged in its entirety.
+
+And it's nice and fast.  On my system I get 1450k 200 byte lines per second saved to a shared
 logfile under LOCK_EX mutex
-(using [qfputs](https://www.npmjs.org/package/qfputs) as the writer and logging
-only 2 lines per continuable; 1.1m per sec if logging 5 lines per continuable).
+(writing with [qfputs](https://www.npmjs.org/package/qfputs) without filtering,
+or 850k/sec if also adding a timestamp and the loglevel.
 
 A slow logger can report on the data being processed.  A fast logger is a data
 streaming engine, and can itself process data.
@@ -24,22 +28,9 @@ streaming engine, and can itself process data.
         const qlogger = require('qlogger');
         const filters = require('qlogger/filters');
         const logger = qlogger('info', 'file:///var/log/myApp/app.log');
-        logger.addFilter(filters.BasicFilter().create());
+        logger.addFilter(filters.BasicFilter.create());
         logger.info('Hello, world.');
 
-
-Installation
-------------
-
-        npm install qlogger
-
-Unit test:
-
-        npm test qlogger
-
-Speed test (log 100k timestamped 200 byte lines):
-
-        node node_modules/qlogger/benchmark.js
 
 Structure
 ---------
@@ -49,17 +40,26 @@ may be edited in flight by filters.  Filters return the modified string, and
 can annotate it with timestamp, loglevel, hostname, etc., or serialize objects
 for export.  Writers deliver the strings to their detaination.
 
+Newline delimited text is a universally compatible, easy to scan, and very very fast
+way to stream and process data.
+
 Writers can be added to write to file, send over TCP/IP, send to syslog, etc.
-The strings can be modified in flight by filters, which will write the altered
-string.  Common filters would be to add a timestap and the message loglevel.
+The messages can be modified in flight by filters, causing the altered message to
+be written.  Common filters would be to add a timestap and the message loglevel.
 Writers and filters must be configured explicitly, there is no default.
+Each logger supports multiple filters and multiple writers.
 
-QLogger exports a simplified subset of the traditional logging methods:
-error, info, and debug.  Each log message is appended to the logfile
-as a newline terminated string.
+Qlogger exports the full set of the `syslog(2)` log reporting levels, from emerg() to
+debug():
 
-Newline delimited text is a universally compatible, easy-to-parse and
-very very fast way to stream and process data.
+    #define LOG_EMERG       0       /* system is unusable */
+    #define LOG_ALERT       1       /* action must be taken immediately */
+    #define LOG_CRIT        2       /* critical conditions */
+    #define LOG_ERR         3       /* error conditions */
+    #define LOG_WARNING     4       /* warning conditions */
+    #define LOG_NOTICE      5       /* normal but significant condition */
+    #define LOG_INFO        6       /* informational */
+    #define LOG_DEBUG       7       /* debug-level messages */QLogger.ERROR = 3;
 
 Points to keep in mind when using logfiles for general-purpose data transport:
   - the logfile might have multiple writers and unix writes are not atomic,
@@ -75,6 +75,49 @@ Points to keep in mind when using logfiles for general-purpose data transport:
     interval should be pretty short (all consumers of the logfile must
     wait out the reopen interval to ensure that activity has settled
     before moving on from the file)
+
+The above safeguards are built into the `file://` type writers, with
+a reopen frequency of 0.05 seconds
+
+### Filters
+
+A filter is a function that transforms the message being logged.  The function is passed two
+arguments, the message and the current numeric loglevel, and is expected to return the
+message to log.  If the final transformed message does not have a terminating newline, one
+will be added.
+
+If there is more than one filter on a logger, they will be run in the order added.
+
+        const logger = qlogger('info');
+        logger.addFilter(function(message, loglevel) {
+            return 'logger says: ' + message;
+        })
+        logger.addFilter(function(message, loglevel) {
+            return 'listen up, my ' + message + '\n';
+        })
+
+        logger.info('hello, world.');
+        // => "listen up, my logger says: hello, world.\n'
+
+### Writers
+
+A writer is an object that records the message.  Writers must have a method `write` that
+will be invoked with the filtered message, and preferably a method `fflush` to use to flush
+their internal buffers.  Qlogger tries to snoop stream and socket objects to know whether
+they're busy, other objects should either have an `fflush` method or will not be
+checkpointable.
+
+        const logger = qlogger();
+        logger.addWriter({
+            write: function(message, loglevel) {
+                const timestamp = new Date().toISOString();
+                const levelName = qlogger.LEVELNAMES[loglevel];
+                process.stdout.write(timestamp + ' [' + levelName + '] ' + message + '\n');
+            },
+            fflush: function fflush(callback) {
+                process.stdout.write("", callback);
+            }
+        })
 
 ### Examples
 
