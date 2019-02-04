@@ -34,6 +34,9 @@ streaming engine, and can itself process data.
 
         logger.info('Hello, world.');
 
+`qlogger` is a nodejs rewrite of the `Quick_Logger` PHP logging utility; see
+[`quicklib`](https://github.com/andrasq/quicklib).
+
 
 API
 ---
