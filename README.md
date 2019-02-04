@@ -32,144 +32,12 @@ streaming engine, and can itself process data.
         logger.info('Hello, world.');
 
 
-Structure
----------
-
-QLogger sends newline-delimited strings (messages) to writers.  The strings
-may be edited in flight by filters.  Filters return the modified string, and
-can annotate it with timestamp, loglevel, hostname, etc., or serialize objects
-for export.  Writers deliver the strings to their detaination.
-
-Newline delimited text is a universally compatible, easy to scan, and very very fast
-way to stream and process data.
-
-Writers can be added to write to file, send over TCP/IP, send to syslog, etc.
-The messages can be modified in flight by filters, causing the altered message to
-be written.  Common filters would be to add a timestap and the message loglevel.
-Writers and filters must be configured explicitly, there is no default.
-Each logger supports multiple filters and multiple writers.
-
-Qlogger exports the full set of the `syslog(2)` log reporting levels, from emerg() to
-debug():
-
-    #define LOG_EMERG       0       /* system is unusable */
-    #define LOG_ALERT       1       /* action must be taken immediately */
-    #define LOG_CRIT        2       /* critical conditions */
-    #define LOG_ERR         3       /* error conditions */
-    #define LOG_WARNING     4       /* warning conditions */
-    #define LOG_NOTICE      5       /* normal but significant condition */
-    #define LOG_INFO        6       /* informational */
-    #define LOG_DEBUG       7       /* debug-level messages */QLogger.ERROR = 3;
-
-Points to keep in mind when using logfiles for general-purpose data transport:
-  - the logfile might have multiple writers and unix writes are not atomic,
-    ie writes need a mutex (write-write mutex, eg flock(LOCK_EX))
-  - the logfile might be consumed by simple readers that do not tolerate
-    partial writes, so each write should be a complete newline terminated
-    message (ie, hold the lock for the duration of the write)
-  - the reader might itself modify the logfile (eg compact it), so
-    writes need a mutex (read-write mutex, eg flock(LOCK_EX))
-  - the logfile might get consumed (renamed or removed), ie cannot reuse the
-    file handle indefinitely, must reopen the file periodically
-  - the logfile could be used for low-latency buffering, so the reopen
-    interval should be pretty short (all consumers of the logfile must
-    wait out the reopen interval to ensure that activity has settled
-    before moving on from the file)
-
-The above safeguards are built into the `file://` type writers, with
-a reopen frequency of 0.05 seconds
-
-### Filters
-
-A filter is a function that transforms the message being logged.  The function is passed two
-arguments, the message and the current numeric loglevel, and is expected to return the
-message to log.  If the final transformed message does not have a terminating newline, one
-will be added.
-
-If there is more than one filter on a logger, they will be run in the order added.
-
-        const logger = qlogger('info');
-        logger.addFilter(function(message, loglevel) {
-            return 'logger says: ' + message;
-        })
-        logger.addFilter(function(message, loglevel) {
-            return 'listen up, my ' + message + '\n';
-        })
-
-        logger.info('hello, world.');
-        // => "listen up, my logger says: hello, world.\n'
-
-### Writers
-
-A writer is an object that records the message.  Writers must have a method `write` that
-will be invoked with the filtered message, and preferably a method `fflush` to use to flush
-their internal buffers.  Qlogger tries to snoop stream and socket objects to know whether
-they're busy, other objects should either have an `fflush` method or will not be
-checkpointable.
-
-        const logger = qlogger();
-        logger.addWriter({
-            write: function(message, loglevel) {
-                const timestamp = new Date().toISOString();
-                const levelName = qlogger.LEVELNAMES[loglevel];
-                process.stdout.write(timestamp + ' [' + levelName + '] ' + message + '\n');
-            },
-            fflush: function fflush(callback) {
-                process.stdout.write("", callback);
-            }
-        })
-
-### Examples
-
-Log to stdout, formatting the log lines with the basic plaintext filter:
-
-        qlogger = require('qlogger');
-        filters = require('qlogger/filters');
-        logger = qlogger('info', process.stdout);
-        logger.addFilter(filters.BasicFilter.create());
-
-And then
-
-        logger.info("Hello, world.");
-        // => 2014-11-22 15:03:38.482 [info] Hello, world.
-        logger.debug("debug messages not on");
-        // =>
-        logger.error("Hello again.");
-        // => 2014-11-22 15:03:38.483 [error] Hello again.
-
-The above, step by step:
-
-        QLogger = require('qlogger');
-        logger = new QLogger();
-        logger.loglevel('info');
-        logger.addWriter(process.stdout);
-        BasicFilter = require('qlogger/filters').BasicFilter;
-        logger.addFilter(BasicFilter.create());
-
-Log to file using a write stream, formatting the log lines with a quick inline
-function (note: this is just as an example, file write streams are too slow to
-use where speed matters):
-
-        fs = require('fs');
-        QLogger = require('qlogger');
-        logger = new QLogger('info', fs.createWriteStream('app.log', 'a'));
-        logger.addFilter(function(msg, level) {
-            return new Date().toISOString + " " + msg;
-        });
-
-Log to file using a qfputs FileWriter, without any additional formatting.
-This can stream over 100MB/sec of data one line at a time to a
-mutex-controlled shared logfile.
-
-        QLogger = require('qlogger');
-        logger = new QLogger('info', QLogger.createWriter('file://app.log', 'a'));
-
-Methods
--------
+API
+---
 
 ### new QLogger( [loglevel], [writer] )
 
-Create a logger that will log messages of importance loglevel or above.  It is
+Create a logger that will log messages of `loglevel` importance or above.  It is
 an error if the loglevel is not recognized.
 
 Loglevel can be specified as a string 'error', 'info' or 'debug'.  If
@@ -330,9 +198,13 @@ when logging non-objects; is not used otherwise.
         };
         filterJson = JsonFilter.create(loglineTemplate);
         logger.addFilter(filterJson);
+
         logger.info("Hello, world.");
         // {"time":1414627805981,"level":"info","custom1":123,"message":"Hello, world."}
+
         logger.info(new Error("oops"));
+        // {"time":1414627805981,"level":"info","custom1":123,"message":"Error: oops",
+        //  "error":{"code":undefined,"message":"oops","stack":"Error: oops\n    at ..."}}
 
 The json encoding function to use can be specified in `opts.encode`.
 The default is JSON.stringify, but for simple json logging
@@ -406,6 +278,139 @@ Return the current millisecond timestamp, guaranteed to not be stale.  Freshness
 ensured to within a millisecond of the actual wallclock time by wrapping the callback
 in a `setImmediate`, thus letting the timestamp expire first in case the event loop
 had been blocked.
+
+
+Structure
+---------
+
+QLogger sends newline-delimited strings (messages) to writers.  The strings
+may be edited in flight by filters.  Filters return the modified string, and
+can annotate it with timestamp, loglevel, hostname, etc., or serialize objects
+for export.  Writers deliver the strings to their detaination.
+
+Newline delimited text is a universally compatible, easy to scan, and very very fast
+way to stream and process data.
+
+Writers can be added to write to file, send over TCP/IP, send to syslog, etc.
+The messages can be modified in flight by filters, causing the altered message to
+be written.  Common filters would be to add a timestap and the message loglevel.
+Writers and filters must be configured explicitly, there is no default.
+Each logger supports multiple filters and multiple writers.
+
+Qlogger exports the full set of the `syslog(2)` log reporting levels, from emerg() to
+debug():
+
+    #define LOG_EMERG       0       /* system is unusable */
+    #define LOG_ALERT       1       /* action must be taken immediately */
+    #define LOG_CRIT        2       /* critical conditions */
+    #define LOG_ERR         3       /* error conditions */
+    #define LOG_WARNING     4       /* warning conditions */
+    #define LOG_NOTICE      5       /* normal but significant condition */
+    #define LOG_INFO        6       /* informational */
+    #define LOG_DEBUG       7       /* debug-level messages */QLogger.ERROR = 3;
+
+Points to keep in mind when using logfiles for general-purpose data transport:
+  - the logfile might have multiple writers and unix writes are not atomic,
+    ie writes need a mutex (write-write mutex, eg flock(LOCK_EX))
+  - the logfile might be consumed by simple readers that do not tolerate
+    partial writes, so each write should be a complete newline terminated
+    message (ie, hold the lock for the duration of the write)
+  - the reader might itself modify the logfile (eg compact it), so
+    writes need a mutex (read-write mutex, eg flock(LOCK_EX))
+  - the logfile might get consumed (renamed or removed), ie cannot reuse the
+    file handle indefinitely, must reopen the file periodically
+  - the logfile could be used for low-latency buffering, so the reopen
+    interval should be pretty short (all consumers of the logfile must
+    wait out the reopen interval to ensure that activity has settled
+    before moving on from the file)
+
+The above safeguards are built into the `file://` type writers, with
+a reopen frequency of 0.05 seconds
+
+### Filters
+
+A filter is a function that transforms the message being logged.  The function is passed two
+arguments, the message and the current numeric loglevel, and is expected to return the
+message to log.  If the final transformed message does not have a terminating newline, one
+will be added.
+
+If there is more than one filter on a logger, they will be run in the order added.
+
+        const logger = qlogger('info');
+        logger.addFilter(function(message, loglevel) {
+            return 'logger says: ' + message;
+        })
+        logger.addFilter(function(message, loglevel) {
+            return 'listen up, my ' + message + '\n';
+        })
+
+        logger.info('hello, world.');
+        // => "listen up, my logger says: hello, world.\n'
+
+### Writers
+
+A writer is an object that records the message.  Writers must have a method `write` that
+will be invoked with the filtered message, and preferably a method `fflush` to use to flush
+their internal buffers.  Qlogger tries to snoop stream and socket objects to know whether
+they're busy, other objects should either have an `fflush` method or will not be
+checkpointable.
+
+        const logger = qlogger();
+        logger.addWriter({
+            write: function(message, loglevel) {
+                const timestamp = new Date().toISOString();
+                const levelName = qlogger.LEVELNAMES[loglevel];
+                process.stdout.write(timestamp + ' [' + levelName + '] ' + message + '\n');
+            },
+            fflush: function fflush(callback) {
+                process.stdout.write("", callback);
+            }
+        })
+
+### Examples
+
+Log to stdout, formatting the log lines with the basic plaintext filter:
+
+        qlogger = require('qlogger');
+        filters = require('qlogger/filters');
+        logger = qlogger('info', process.stdout);
+        logger.addFilter(filters.BasicFilter.create());
+
+And then
+
+        logger.info("Hello, world.");
+        // => 2014-11-22 15:03:38.482 [info] Hello, world.
+        logger.debug("debug messages not on");
+        // =>
+        logger.error("Hello again.");
+        // => 2014-11-22 15:03:38.483 [error] Hello again.
+
+The above, step by step:
+
+        QLogger = require('qlogger');
+        logger = new QLogger();
+        logger.loglevel('info');
+        logger.addWriter(process.stdout);
+        BasicFilter = require('qlogger/filters').BasicFilter;
+        logger.addFilter(BasicFilter.create());
+
+Log to file using a write stream, formatting the log lines with a quick inline
+function (note: this is just as an example, file write streams are too slow to
+use where speed matters):
+
+        fs = require('fs');
+        QLogger = require('qlogger');
+        logger = new QLogger('info', fs.createWriteStream('app.log', 'a'));
+        logger.addFilter(function(msg, level) {
+            return new Date().toISOString + " " + msg;
+        });
+
+Log to file using a qfputs FileWriter, without any additional formatting.
+This can stream over 100MB/sec of data one line at a time to a
+mutex-controlled shared logfile.
+
+        QLogger = require('qlogger');
+        logger = new QLogger('info', QLogger.createWriter('file://app.log', 'a'));
 
 
 Related
