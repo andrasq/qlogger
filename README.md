@@ -43,21 +43,16 @@ API
 Create a logger that will log messages of `loglevel` importance or above.  It is
 an error if the loglevel is not recognized.
 
-Loglevel can be specified as a string 'error', 'info' or 'debug'.  If
-omitted, it defaults to 'info'.  Internally, they are converted to the
-standard unix syslog loglevels 3, 6 and 7.  The higher syslog logging
-levels (emerg, alert, and crit) and warning and notice were deliberately
-omitted, leaving just the three essential message classes:  human
-attention required, useful statistics, and everything available for
-debugging.  As of version v1.4.0, all `syslog` loglevels are recognized:
-'emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info' and 'debug',
-along with 'all' and 'none'.
+Loglevel can be specified as a string 'error', 'info' or 'debug'.  If omitted, it defaults
+to 'info'.  Internally, loglevels are converted to the standard unix syslog(2) loglevels 3,
+6 and 7.  As of version v1.4.0, all `syslog` loglevels are recognized:  'emerg', 'alert',
+'crit', 'err', 'warning', 'notice', 'info' and 'debug', along with 'all' and 'none'.
 
-The optional writer may be a writerObject (see addWriter below), or a writer
-specification string.  The latter will create one of the built-in writers
-using QLogger.createWriter().  If no writerSpec is given, the logger will be
-created without a writer.  It is an error if the writer specification is not
-recognized.  The built-in writers are those supported by createWriter().
+The optional writer may be a writerObject (see addWriter below), or a writer specification
+string.  The latter will create one of the built-in writers using QLogger.createWriter().
+If no writerSpec is given, the logger will be created without a writer.  Writers can be
+added later at any time.  It is an error if the writer specification is not recognized.  The
+built-in writers are those supported by createWriter().
 
 ### QLogger.createWriter( writerSpec )
 
@@ -213,41 +208,6 @@ Options:
 - `timestamp` - function to generate the timestamp value to include in the output,
   eg `filters.formatJsDateIsoString()`.  Default is `filters.getTimestamp()`.
 
-### Timestamp formatting
-
-QLogger exports a few simple timestamp formatters.  The formatters take a millisecond
-timestamp as returned by `Date.now()`, and convert it to a datetime string.  The formatters
-are optimized to be esepcially fast for clustered timestamps, many close together.
-
-#### filters.formatIsoDate( [timestamp] )
-
-        var formatIsoDate = require('qlogger/filters').formatIsoDate;
-        var timestamp = Date.now();
-        // => 1414627805981
-        var time = formatIsoDate(timestamp);
-        // => 2014-10-29 20:10:05
-
-#### filters.formatIsoDateUtc( [timestamp] )
-
-        var formatIsoDateUTC = require('qlogger/filters').formatIsoDateUtc;
-        var time = formatIsoDate(1414627805981);
-        // => 2014-10-30 00:10:05
-
-#### filters.formatNumericDateUtc( [timestamp] )
-
-        filters.formatNumericDateUtc();
-        // => "20190203194104.461"
-
-#### filters.formatJsDateIsoString( [timestamp] )
-
-        filters.formatJsDateIsoString();
-        // => "2019-02-03T19:41:04.461Z"
-
-#### filters.formatBasicDate( [timestamp] )
-
-        filters.formatBasicDate();
-        // => "2019-02-03 19:41:04.461"
-
 ### Timestamps
 
 `qlogger` exports its source of high-speed millisecond timestamps.  These timestamps
@@ -269,6 +229,43 @@ Return the current millisecond timestamp, guaranteed to not be stale.  Freshness
 ensured to within a millisecond of the actual wallclock time by wrapping the callback
 in a `setImmediate`, thus letting the timestamp expire first in case the event loop
 had been blocked.
+
+### Timestamp Formatting
+
+QLogger exports a few simple timestamp formatters.  The formatters take a millisecond
+timestamp as returned by `Date.now()`, and convert it to a datetime string.  The formatters
+are optimized to be esepcially fast for clustered timestamps, many close together.
+
+#### filters.formatIsoDate( [timestamp] )
+
+        var timestamp = Date.now();
+        // => 1414627805981
+
+        var time = formatIsoDate(timestamp);
+        // => 2014-10-29 20:10:05
+
+#### filters.formatIsoDateUtc( [timestamp] )
+
+        filters.formatIsoDateUtc(1414627805981);
+        // => 2014-10-30 00:10:05
+
+#### filters.formatNumericDateUtc( [timestamp] )
+
+        filters.formatNumericDateUtc(1414627805981);
+        // => "20141030001005.981"
+
+        filters.formatNumericDateUtc();
+        // => "20190203194104.461"
+
+#### filters.formatJsDateIsoString( [timestamp] )
+
+        filters.formatJsDateIsoString();
+        // => "2019-02-03T19:41:04.461Z"
+
+#### filters.formatBasicDate( [timestamp] )
+
+        filters.formatBasicDate();
+        // => "2019-02-03 19:41:04.461"
 
 
 Structure
