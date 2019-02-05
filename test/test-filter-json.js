@@ -3,6 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  */
 
+var setImmediate = global.setImmediate || process.nextTick;
 var JsonFilter = require('../filters').JsonFilter;
 
 module.exports = {
