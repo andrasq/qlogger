@@ -12,6 +12,8 @@
 - new: skip the message if any filter returns `undefined` for it
 - fix: cast the message to String() if the filters don't
 - 100% test coverage
+- make `createWriter('tcp://')` to return `null` if no error not false.
+  Node v10 assert.ifError now treats `false` as error-y.
 
 1.5.0 2017-12-29
 

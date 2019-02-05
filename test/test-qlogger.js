@@ -341,29 +341,29 @@ module.exports = {
         'should assume busy if net.Socket bufferSize not zero': function(t) {
             var server = net.createServer(function(socket) {});
             server.on('error', function(err) { t.done(err) });
-            server.listen(1337, 'localhost');
-
             var self = this;
-            var socket = QLogger.createWriter('tcp://localhost:1337', function(err) {
-                t.ifError(err);
-                socket.on('error', function(err) { t.ifError(err, 'socket create error') });
-                self.logger.addWriter(socket);
+            server.listen(1337, 'localhost', function() {
+                var socket = QLogger.createWriter('tcp://localhost:1337', function(err) {
+                    t.ifError(err);
+                    socket.on('error', function(err) { t.ifError(err, 'socket create error') });
+                    self.logger.addWriter(socket);
 
-                Object.defineProperty(socket, 'bufferSize', { value: 1234, enumerable: true, writable: true });
-                socket._writableState = socket._writableState || {};
-                socket._writableState.needDrain = true;
-                socket._writableState.writing = true;
-                setTimeout(function() { socket.bufferSize = 0 }, 25);
-                setTimeout(function() { socket._writableState.needDrain = false }, 50);
-                setTimeout(function() { socket._writableState.writing = false }, 100);
+                    Object.defineProperty(socket, 'bufferSize', { value: 1234, enumerable: true, writable: true });
+                    socket._writableState = socket._writableState || {};
+                    socket._writableState.needDrain = true;
+                    socket._writableState.writing = true;
+                    setTimeout(function() { socket.bufferSize = 0 }, 25);
+                    setTimeout(function() { socket._writableState.needDrain = false }, 50);
+                    setTimeout(function() { socket._writableState.writing = false }, 100);
 
-                var t1 = Date.now();
-                self.logger.fflush(function(err) {
-                    var t2 = Date.now();
-                    t.ok(t2 - t1 >= 25 - 1);
-                    if (Stream.Writable) t.ok(t2 - t1 >= 100 - 1);
-                    server.close();
-                    t.done();
+                    var t1 = Date.now();
+                    self.logger.fflush(function(err) {
+                        var t2 = Date.now();
+                        t.ok(t2 - t1 >= 25 - 1);
+                        if (Stream.Writable) t.ok(t2 - t1 >= 100 - 1);
+                        server.close();
+                        t.done();
+                    })
                 })
             })
         },
