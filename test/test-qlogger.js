@@ -179,11 +179,13 @@ module.exports = {
             var logger = this.logger;
             logger.addWriter(writer);
             logger.info('test');
-            t.equal(logger._writeErrors.length, 1);
+            logger.info('test');
+            t.equal(logger._writeErrors.length, 2);
             t.equal(logger._writeErrors[0].message, "write error");
             logger.fflush(function(err) {
                 t.ok(err);
-                t.equal(err.message, "write error");
+                t.equal(err.length, 2);
+                t.equal(err[0].message, "write error");
                 t.equal(logger._writeErrors.length, 0);
                 t.done();
             })
@@ -308,6 +310,13 @@ module.exports = {
                 t.done();
             })
         },
+
+        'should return error if tcp writer cannot connect': function(t) {
+            QLogger.createWriter('tcp://localhost:1', function(err) {
+                t.ok(err);
+                t.done();
+            })
+        },
     },
 
     'fflush': {
@@ -344,13 +353,13 @@ module.exports = {
             socket._writableState.needDrain = true;
             socket._writableState.writing = true;
             setTimeout(function() { socket.bufferSize = 0 }, 50);
-            setTimeout(function() { socket._writableState.needDrain = false }, 100);
-            setTimeout(function() { socket._writableState.writing = false }, 150);
+            setTimeout(function() { socket._writableState.needDrain = false }, 150);
+            setTimeout(function() { socket._writableState.writing = false }, 200);
 
             var t1 = Date.now();
             self.logger.fflush(function(err) {
                 var t2 = Date.now();
-                t.ok(t2 - t1 >= 150);
+                t.ok(t2 - t1 >= 200);
                 server.close();
                 t.done();
             })
