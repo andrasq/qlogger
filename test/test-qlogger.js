@@ -67,11 +67,24 @@ module.exports = {
         },
 
         'should export the logging methods': function(t) {
-            var methods = ['error', 'err', 'warning', 'warn', 'info', 'debug'];
+            var methods = ['emerg', 'alert', 'crit', 'error', 'err', 'warning', 'warn', 'notice', 'info', 'debug'];
             var i;
             for (i=0; i<methods.length; i++) {
                 var method = methods[i];
                 this.logger[method]("log message");
+            }
+            t.done();
+        },
+
+        'should log with all logging methods': function(t) {
+            var wrote = [];
+            var logger = new QLogger(QLogger.LOGLEVELS.LOG_ALL);
+            logger.addFilter(function(str, level) { wrote.push([str, level]) });
+            var methods = ['emerg', 'alert', 'crit', 'error', 'err', 'warning', 'warn', 'notice', 'info', 'debug'];
+            for (var i=0; i<methods.length; i++) logger[methods[i]](methods[i]);
+            for (var i=0; i<wrote.length; i++) {
+                t.equal(wrote[i][0], methods[i]);
+                t.equal(wrote[i][1], QLogger.LOGLEVELS[wrote[i][0]]);
             }
             t.done();
         },
