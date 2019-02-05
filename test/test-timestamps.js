@@ -8,31 +8,31 @@
 var assert = require('assert');
 
 var filters = require('../filters');
-var formatTimestamp = require('../lib/timestamps');
+var timestamps = require('../lib/timestamps');
 
 
 module.exports = {
     'should pad2': function(t) {
-        assert.equal(formatTimestamp.pad2(1), '01');
-        assert.equal(formatTimestamp.pad2(12), '12');
-        assert.equal(formatTimestamp.pad2(123), '123');
+        assert.equal(timestamps.pad2(1), '01');
+        assert.equal(timestamps.pad2(12), '12');
+        assert.equal(timestamps.pad2(123), '123');
         t.done();
     },
 
     'should pad3': function(t) {
-        assert.equal(formatTimestamp.pad3(1), '001');
-        assert.equal(formatTimestamp.pad3(12), '012');
-        assert.equal(formatTimestamp.pad3(123), '123');
-        assert.equal(formatTimestamp.pad3(1234), '1234');
+        assert.equal(timestamps.pad3(1), '001');
+        assert.equal(timestamps.pad3(12), '012');
+        assert.equal(timestamps.pad3(123), '123');
+        assert.equal(timestamps.pad3(1234), '1234');
         t.done();
     },
 
     'should pad4': function(t) {
-        assert.equal(formatTimestamp.pad4(1), '0001');
-        assert.equal(formatTimestamp.pad4(12), '0012');
-        assert.equal(formatTimestamp.pad4(123), '0123');
-        assert.equal(formatTimestamp.pad4(1234), '01234');
-        assert.equal(formatTimestamp.pad4(12345), '12345');
+        assert.equal(timestamps.pad4(1), '0001');
+        assert.equal(timestamps.pad4(12), '0012');
+        assert.equal(timestamps.pad4(123), '0123');
+        assert.equal(timestamps.pad4(1234), '01234');
+        assert.equal(timestamps.pad4(12345), '12345');
         t.done();
     },
 
@@ -40,7 +40,7 @@ module.exports = {
         // setTimeout expire the current timestamp, to guarantee fresh
         var t1 = Date.now();
         setTimeout(function() {
-            var time = formatTimestamp.getTimestamp();
+            var time = timestamps.getTimestamp();
             var t2 = Date.now();
             t.ok(t1 <= time);
             t.ok(time <= t2);
@@ -50,9 +50,24 @@ module.exports = {
 
     'should return timestamp async': function(t) {
         var t1 = Date.now();
-        formatTimestamp.getTimestampAsync(function(err, time) {
+        timestamps.getTimestampAsync(function(err, time) {
             var t2 = Date.now();
             // NOTE: can return a timestamp up to 1 ms off, setTimeout is not synchronized to the clock
+            t.ok(t1 - 1 <= time);
+            t.ok(time <= t2);
+            t.done();
+        });
+    },
+
+    'should return timestamp async without setImmediate too': function(t) {
+        var setImmediate = global.setImmediate;
+        delete global.setImmediate;
+        t.unrequire('../lib/timestamps');
+        var timestamps = require('../lib/timestamps');
+        var t1 = Date.now();
+        timestamps.getTimestampAsync(function(err, time) {
+            global.setImmediate = setImmediate;
+            var t2 = Date.now();
             t.ok(t1 - 1 <= time);
             t.ok(time <= t2);
             t.done();
@@ -117,15 +132,15 @@ module.exports = {
 
     'Timebase': {
         'should export expected methods': function(t) {
-            t.equal(typeof formatTimestamp.test.Timebase, 'function');
-            var tbase = new formatTimestamp.test.Timebase();
+            t.equal(typeof timestamps.test.Timebase, 'function');
+            var tbase = new timestamps.test.Timebase();
             t.equal(typeof tbase.getTimestamp, 'function');
             t.equal(typeof tbase.getTimestampAsync, 'function');
             t.done();
         },
 
         'should fetch the current timestamp with refresh': function(t) {
-            var tbase = new formatTimestamp.test.Timebase();
+            var tbase = new timestamps.test.Timebase();
             var stub = t.stub(tbase, 'refresh', function(){ this.timestamp = 12345; return true });
             t.equal(tbase.getTimestamp(), 12345);
             stub.restore();
@@ -133,7 +148,7 @@ module.exports = {
         },
 
         'reresh should start only one timeout timer': function(t) {
-            var timebase = new formatTimestamp.test.Timebase();
+            var timebase = new timestamps.test.Timebase();
             t.ok(!timebase.timeoutTimer);
             timebase.refresh();
             var timer1 = timebase.timeoutTimer;
