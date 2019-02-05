@@ -19,6 +19,8 @@
   },
 
   "scripts": {
+    "prepublishOnly": "mkdir -p .git/ar/ && mv * .git/ar/ && cd .git/ar/ && mv [piLRfl]* ../.. && cd ../..",
+    "postpublish": "mv .git/ar/* .",
     "test": "env TZ=America/New_York qnit test",
     "coverage": "nyc --reporter lcov --reporter text npm test",
     "clean": "rm -rf .nyc_output coverage npm-debug.log"
