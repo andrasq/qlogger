@@ -344,7 +344,7 @@ module.exports = {
             server.listen(1337, 'localhost');
 
             var self = this;
-            var socket = net.connect(1337, 'localhost');
+            var socket = QLogger.createWriter('tcp://localhost:1337');
             socket.on('error', function(err) { t.ifError(err, 'socket create error') });
             self.logger.addWriter(socket);
 
