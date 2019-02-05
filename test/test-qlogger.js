@@ -3,11 +3,14 @@
  * Licensed under the Apache License, Version 2.0
  */
 
-fs = require('fs');
-net = require('net');
-QLogger = require('../index');
-filterBasic = require('../filters').filterBasic;
-filterJson = (require('../filters')).JsonFilter.makeFilter({})
+'use strict';
+
+var fs = require('fs');
+var net = require('net');
+var Stream = require('stream');
+var QLogger = require('../index');
+var filterBasic = require('../filters').filterBasic;
+var filterJson = (require('../filters')).JsonFilter.makeFilter({})
 
 module.exports = {
     setUp: function(done) {
@@ -158,6 +161,16 @@ module.exports = {
             t.equal(this.lines.length, 0);
             t.done();
         },
+
+        'should cast to string if filters do not': function(t) {
+            var wrote = [];
+            this.logger.addWriter({ write: function(str, cb) { wrote.push(str); cb() } });
+            this.logger.info(123);
+            this.logger.info([1, 2, 3]);
+            t.equal(wrote[0], '123\n');
+            t.equal(wrote[1], String([1, 2, 3]) + '\n');
+            t.done();
+        },
     },
 
     'errors': {
@@ -222,7 +235,7 @@ module.exports = {
             server.on('error', function(err) {
                 t.done(err);
             })
-            server.listen(1337, 'localhost', function(){
+            server.listen(1337, 'localhost', function() {
                 var writer = QLogger.createWriter('tcp://localhost:1337');
                 writer.on('error', function() {
                     t.ok(false, "no localhost tcp server, unable to test tcp");
@@ -292,6 +305,77 @@ module.exports = {
         'should return error on invalid writer selector': function(t) {
             QLogger.createWriter('nonesuch://', function(err) {
                 t.ok(err);
+                t.done();
+            })
+        },
+    },
+
+    'fflush': {
+        'should assume busy if Stream.Writable needDrain or writing': function(t) {
+            if (!Stream.Writable) t.skip();     // omit on node-v0.8
+            var stream = new Stream.Writable();
+            this.logger.addWriter(stream);
+
+            stream._writableState.needDrain = true;
+            stream._writableState.writing = true;
+            setTimeout(function() { stream._writableState.needDrain = false }, 150);
+            setTimeout(function() { stream._writableState.writing = false }, 200);
+
+            var t1 = Date.now();
+            this.logger.fflush(function() {
+                var t2 = Date.now();
+                t.ok(t2 - t1 >= 200);
+                t.done();
+            })
+        },
+
+        'should assume busy if net.Socket bufferSize not zero': function(t) {
+            var server = net.createServer(function(socket) {});
+            server.on('error', function(err) { t.done(err) });
+            server.listen(1337, 'localhost');
+
+            var self = this;
+            var socket = net.connect(1337, 'localhost');
+            socket.on('error', function(err) { t.ifError(err, 'socket create error') });
+            self.logger.addWriter(socket);
+
+            Object.defineProperty(socket, 'bufferSize', { value: 1234, enumerable: true, writable: true });
+            socket._writableState = socket._writableState || {};
+            socket._writableState.needDrain = true;
+            socket._writableState.writing = true;
+            setTimeout(function() { socket.bufferSize = 0 }, 50);
+            setTimeout(function() { socket._writableState.needDrain = false }, 100);
+            setTimeout(function() { socket._writableState.writing = false }, 150);
+
+            var t1 = Date.now();
+            self.logger.fflush(function(err) {
+                var t2 = Date.now();
+                t.ok(t2 - t1 >= 150);
+                server.close();
+                t.done();
+            })
+        },
+
+        'should tolerate fflush that throws': function(t) {
+            var called = false;
+            this.logger.addWriter({
+                write: function(str, cb) { cb() },
+                fflush: function() { called = true; throw new Error('test error') }
+            });
+            this.logger.fflush(function(err) {
+                t.ifError(err);
+                t.ok(called);
+                t.done();
+            })
+        },
+
+        'should tolerate stream.Writable without _writableState': function(t) {
+            if (!Stream.Writable) t.skip();     // omit on node-v0.8
+            var stream = new Stream.Writable();
+            this.logger.addWriter(stream);
+            delete stream._writableState;
+            this.logger.fflush(function(err) {
+                t.ifError(err);
                 t.done();
             })
         },
