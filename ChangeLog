@@ -9,6 +9,8 @@
 - expose the BasicFilter implementation class
 - expose a `create` method on the built-in filters
 - expose filters.getTimestamp and getTimestampAsync
+- new: skip the message if any filter returns `undefined` for it
+- fix: cast the message to String() if the filters don't
 
 1.5.0 2017-12-29
 
