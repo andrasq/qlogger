@@ -7,7 +7,7 @@ quick nodejs logging and newline delimited data transport
 
 QLogger is a a very fast logger, also a toolkit for building very fast loggers.  It can be
 used out of the box as-is, or it can be easily configured in new ways for custom loggers.
-It's lean, fast, very flexible, and easy to use.
+It uses the standard Unix `syslog(2)` loglevels, and is lean, fast, very flexible, and easy to use.
 
 The logger can log in any format, eg space-separated text or json bundles.  Formatting and
 writing is done by pluggable _filters_ that transform the log messages, and _writers_ that
