@@ -359,7 +359,8 @@ module.exports = {
             var t1 = Date.now();
             self.logger.fflush(function(err) {
                 var t2 = Date.now();
-                t.ok(t2 - t1 >= 200);
+                t.ok(t2 - t1 >= 50);
+                if (Stream.Writable) t.ok(t2 - t1 >= 200);
                 server.close();
                 t.done();
             })
