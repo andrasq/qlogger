@@ -327,13 +327,13 @@ module.exports = {
 
             stream._writableState.needDrain = true;
             stream._writableState.writing = true;
-            setTimeout(function() { stream._writableState.needDrain = false }, 150);
-            setTimeout(function() { stream._writableState.writing = false }, 200);
+            setTimeout(function() { stream._writableState.needDrain = false }, 50);
+            setTimeout(function() { stream._writableState.writing = false }, 100);
 
             var t1 = Date.now();
             this.logger.fflush(function() {
                 var t2 = Date.now();
-                t.ok(t2 - t1 >= 200);
+                t.ok(t2 - t1 >= 100 - 1);
                 t.done();
             })
         },
@@ -352,15 +352,15 @@ module.exports = {
             socket._writableState = socket._writableState || {};
             socket._writableState.needDrain = true;
             socket._writableState.writing = true;
-            setTimeout(function() { socket.bufferSize = 0 }, 50);
-            setTimeout(function() { socket._writableState.needDrain = false }, 150);
-            setTimeout(function() { socket._writableState.writing = false }, 200);
+            setTimeout(function() { socket.bufferSize = 0 }, 25);
+            setTimeout(function() { socket._writableState.needDrain = false }, 50);
+            setTimeout(function() { socket._writableState.writing = false }, 100);
 
             var t1 = Date.now();
             self.logger.fflush(function(err) {
                 var t2 = Date.now();
-                t.ok(t2 - t1 >= 50);
-                if (Stream.Writable) t.ok(t2 - t1 >= 200);
+                t.ok(t2 - t1 >= 25 - 1);
+                if (Stream.Writable) t.ok(t2 - t1 >= 100 - 1);
                 server.close();
                 t.done();
             })
