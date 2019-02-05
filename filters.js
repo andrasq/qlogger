@@ -1,7 +1,32 @@
-// filterBasic is legacy
-module.exports.filterBasic = require('./lib/filter-basic.js');
+/**
+ * basic logging filters
+ *
+ * Copyright (C) 2014,2019 Andras Radics
+ * Licensed under the Apache License, Version 2.0
+ *
+ * 2014-10-29 - AR.
+ */
+
+var QLogger = require('./lib/qlogger.js');
+var timestamps = require('./lib/timestamps');
+
+// basic logging filter, adds a timestamp and the loglevel
+// This tiny filter was moved here from lib/filter-basic.
+function BasicFilter( ) {
+    this.filter = function filter(message, loglevel) {
+        var timestring = timestamps.formatBasicDate();
+        return timestring + " [" + QLogger.LEVELNAMES[loglevel] + "] " + message;
+    }
+}
+BasicFilter.create = function create( ) {
+    var filter = new BasicFilter();
+    return function(message, level) { return filter.filter(message, level) }
+}
+
 module.exports.JsonFilter = require('./lib/filter-json.js');
-module.exports.BasicFilter = require('./lib/filter-basic.js').BasicFilter;
+module.exports.BasicFilter = BasicFilter; //require('./lib/filter-basic.js').BasicFilter;
+// filterBasic is legacy
+module.exports.filterBasic = module.exports.BasicFilter.create();
 
 var timestamps = require('./lib/timestamps');
 module.exports.formatIsoDate = timestamps.formatIsoDate;
