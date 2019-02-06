@@ -8,7 +8,7 @@
   "repository": { "type": "git", "url": "git://github.com/andrasq/qlogger" },
   "author": { "name": "Andras", "url": "http://github.com/andrasq" },
   "engines": { "node": ">=0.8" },
-  "keywords": [ "Andras", "quick", "fast", "logging", "newline", "delimited", "text", "data", "transport", "json", "bunyan" ],
+  "keywords": [ "Andras", "quick", "fast", "logging", "newline", "delimited", "text", "data", "transport", "json", "bunyan", "winston" ],
   "readme": "see the README.md in the repo",
 
   "dependencies": {
