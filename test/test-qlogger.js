@@ -56,6 +56,41 @@ module.exports = {
             t.done();
         },
 
+        'should get and remove writers': function(t) {
+            var writer1 = { write: function() {} };
+            var writer2 = { write: function() {} };
+
+            var logger = new QLogger('info', writer1);
+            t.deepEqual(logger.getWriters(), [ writer1 ]);
+            logger.addWriter(writer2);
+            t.deepEqual(logger.getWriters(), [writer1, writer2]);
+            logger.removeWriter(writer1);
+            t.deepEqual(logger.getWriters(), [writer2]);
+
+            logger.removeWriter({});
+            logger.removeWriter(7);
+
+            t.done();
+        },
+
+        'should add, get and remove filters': function(t) {
+            var filter1 = function() {};
+            var filter2 = function() {};
+
+            this.logger.removeFilter(7);
+            this.logger.addFilter(filter1);
+            t.deepEqual(this.logger.getFilters(), [filter1]);
+            this.logger.addFilter(filter2);
+            t.deepEqual(this.logger.getFilters(), [filter1, filter2]);
+            this.logger.removeFilter(filter1);
+            t.deepEqual(this.logger.getFilters(), [filter2]);
+
+            this.logger.removeFilter(filter1);
+            this.logger.removeFilter({});
+
+            t.done();
+        },
+
         'constructor should work as a factory without new': function(t) {
             var logger = QLogger();
             t.ok(logger instanceof QLogger);

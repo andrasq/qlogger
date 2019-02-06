@@ -136,6 +136,15 @@ A writer can be any object that records the message, for example:
             }
         })
 
+### getWriters( )
+
+Return the array of writers added to this qlogger.
+
+### removeWriter( writerObject )
+
+Remove the writer object from this qlogger.  The `writerObject` should be the same as was
+added with `addWriter`.
+
 ### addFilter( filterFunction( message, loglevel ) )
 
 A filter is a function that modifies the message being logged before it is written.  It is
@@ -177,6 +186,15 @@ modifies the result string returned by the previous filter.
         // => "listen up, logger says: hello, world.\n'
 
 A few simple filters are included with `qlogger`; see below.
+
+### getFilters( )
+
+Return the array of filters added to this logger.
+
+### removeFilter( filterFunction )
+
+Remove the filter function from this qlogger.  The function should be the same as was added
+wtih `addFilter`.
 
 ### Built-In Filters
 
