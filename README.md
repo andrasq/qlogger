@@ -261,7 +261,7 @@ Options:
 
 - `encode` - encoding function to use to serialize.  Default is `JSON.stringify`
 - `timestamp` - function to generate the timestamp value to include in the output,
-  eg `filters.formatJsDateIsoString()`.  Default is `filters.getTimestamp()`.
+  eg `filters.formatJsDateIsoString`.  Default is `filters.getTimestamp`.
 
 ### Timestamps
 
