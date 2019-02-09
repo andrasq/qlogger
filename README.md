@@ -266,14 +266,14 @@ Options:
 - `timestamp` - function to generate the timestamp value to include in the output,
   eg `filters.formatJsDateIsoString`.  Default is `filters.getTimestamp`.
 
-### filterKube = filters.KubeFilter.create( options )
+#### filterKube = require('qlogger/filters').KubeFilter.create( options )
 
 Returns a function that formats log messages as newline terminated k8s (Kubernetes)
 compatible json strings, each entry with fields `time`, `type` and `message`.  Unlike
 JsonFilter, the logged message is always included as the `message` property and not
 merged into the top-level json object.
 
-If `options` is a string, it will specify the `type` as `{ type: options }`.
+If `options` is a string, it will be interpreted as the type, as if `{ type: options }`.
 
         const KubeFilter = require('qlogger/filters').KubeFilter;
         const filter = KubeFilter.create('test-stream');
