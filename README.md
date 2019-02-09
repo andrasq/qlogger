@@ -275,16 +275,15 @@ merged into the top-level json object.
 
 If `options` is a string, it will specify the `type` as `{ type: options }`.
 
-Options:
-
-- `type` - log stream type, default `undefined`.  The type is included in every logline.
-- `timestamp` - function to compose the logged timestamp.  Default is `filters.formatJsDateIsoString`.
-
-
         const KubeFilter = require('qlogger/filters').KubeFilter;
         const filter = KubeFilter.create('test-stream');
         let str = filter({ a: 1, b: 2 });
         // => {"time":"2019-02-09T11:05:19.471Z","type":"test-stream","message":{"a":1,"b":2}}
+
+Options:
+
+- `type` - log stream type, default `undefined`.  The type is included in every logline.
+- `timestamp` - function to compose the logged timestamp.  Default is `filters.formatJsDateIsoString`.
 
 ### Timestamps
 
