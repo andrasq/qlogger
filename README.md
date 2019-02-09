@@ -138,7 +138,7 @@ A writer can be any object that records the message, for example:
 
 ### getWriters( )
 
-Return the array of writers added to this qlogger.
+Return the array of writers attached to this qlogger.
 
 ### removeWriter( writerObject )
 
@@ -189,7 +189,7 @@ A few simple filters are included with `qlogger`; see below.
 
 ### getFilters( )
 
-Return the array of filters added to this logger.
+Return the array of filters attached  to this logger.
 
 ### removeFilter( filterFunction )
 
