@@ -200,8 +200,8 @@ wtih `addFilter`.
 
 #### filterBasic = require('qlogger/filters').BasicFilter.create()
 
-`BasicFilter` produces a plaintext logline with a human-readable timestamp
-and the logelevel.
+Returns a `BasicFilter` function, which produces a plaintext logline with a human-readable
+timestamp and the logelevel.
 
         var filter = require('qlogger/filters').BasicFilter.create();
         logger.addFilter(filter);
@@ -210,7 +210,7 @@ and the logelevel.
 
 #### filterJson = require('qlogger/filters').JsonFilter.create( template [,opts] )
 
-`filterJson(message, level)` logs a stringified json bundle with fields "time",
+`filterJson(message, level)` converts to a stringified json bundle with fields "time",
 "level" and possibly "message" (unless explicitly disabled by setting them to
 `false`).  `time` is a millisecond timestamp, `level` is the name of the message
 loglevel.  Other fields are copied from the message object being logged (unless not an
@@ -250,6 +250,9 @@ when logging non-objects; is not used otherwise.
         logger.info("Hello, world.");
         // {"time":1414627805981,"level":"info","custom1":123,"message":"Hello, world."}
 
+        logger.info({ a: 1, b: 'two' });
+        // {"time":1414627805981,"level":"info","custom1":123,"a":1,"b":"two"}
+
         logger.info(new Error("oops"));
         // {"time":1414627805981,"level":"info","custom1":123,"message":"Error: oops",
         //  "error":{"code":undefined,"message":"oops","stack":"Error: oops\n    at ..."}}
@@ -265,12 +268,18 @@ Options:
 
 ### filterKube = filters.KubeFilter.create( options )
 
-Format the log messages as newline terminated k8s (Kubernetes) compatible json strings, each
-entry with fields `time`, `type` and `message`.
+Returns a function that formats log messages as newline terminated k8s (Kubernetes)
+compatible json strings, each entry with fields `time`, `type` and `message`.  Unlike
+JsonFilter, the logged message is always included as the `message` property and not
+merged into the top-level json object.
 
 Options:
 
 - `timestamp` - function to compose the logged timestamp.  Default is `filters.formatJsDateIsoString`.
+
+    const filter = require('qlogger/filters').KubeFilter.create('test-stream');
+    let str = filter({ a: 1, b: 2 });
+    // => {"time":"2019-02-09T11:05:19.471Z","type":"test-stream","message":{"a":1,"b":2}}
 
 ### Timestamps
 
