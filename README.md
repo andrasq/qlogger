@@ -273,13 +273,18 @@ compatible json strings, each entry with fields `time`, `type` and `message`.  U
 JsonFilter, the logged message is always included as the `message` property and not
 merged into the top-level json object.
 
+If `options` is a string, it will specify the `type` as `{ type: options }`.
+
 Options:
 
+- `type` - log stream type, default `undefined`.  The type is included in every logline.
 - `timestamp` - function to compose the logged timestamp.  Default is `filters.formatJsDateIsoString`.
 
-    const filter = require('qlogger/filters').KubeFilter.create('test-stream');
-    let str = filter({ a: 1, b: 2 });
-    // => {"time":"2019-02-09T11:05:19.471Z","type":"test-stream","message":{"a":1,"b":2}}
+
+        const KubeFilter = require('qlogger/filters').KubeFilter;
+        const filter = KubeFilter.create('test-stream');
+        let str = filter({ a: 1, b: 2 });
+        // => {"time":"2019-02-09T11:05:19.471Z","type":"test-stream","message":{"a":1,"b":2}}
 
 ### Timestamps
 
