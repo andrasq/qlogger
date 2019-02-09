@@ -263,10 +263,19 @@ Options:
 - `timestamp` - function to generate the timestamp value to include in the output,
   eg `filters.formatJsDateIsoString`.  Default is `filters.getTimestamp`.
 
+### filterKube = filters.KubeFilter.create( options )
+
+Format the log messages as newline terminated k8s (Kubernetes) compatible json strings, each
+entry with fields `time`, `type` and `message`.
+
+Options:
+
+- `timestamp` - function to compose the logged timestamp.  Default is `filters.formatJsDateIsoString`.
+
 ### Timestamps
 
 `qlogger` exports its source of high-speed millisecond timestamps.  These timestamps
-are also tuned for groups of reads close together.
+are tuned for groups of reads close together.
 
         const filters = require('qlogger/filters');
 
@@ -288,10 +297,14 @@ had been blocked.
 ### Timestamp Formatting
 
 QLogger exports a few simple timestamp formatters.  The formatters take a millisecond
-timestamp as returned by `Date.now()`, and convert it to a datetime string.  The formatters
-are optimized to be esepcially fast for clustered timestamps, many close together.
+timestamp as returned by `new Date().getTime()`, and convert it to a datetime string.  The
+formatters are very very fast, optimized for realtime timestamps:  faster than
+`String(Date.now())`, faster even than `String(count++)`.
+
 
 #### filters.formatIsoDate( [timestamp] )
+
+SQL ISO-8601 DATETIME, in 'YYYY-MM-DD hh:mm:ss' format, local timezone.
 
         var timestamp = Date.now();
         // => 1414627805981
@@ -301,10 +314,14 @@ are optimized to be esepcially fast for clustered timestamps, many close togethe
 
 #### filters.formatIsoDateUtc( [timestamp] )
 
+SQL DATETIME in GMT timezone.
+
         filters.formatIsoDateUtc(1414627805981);
         // => 2014-10-30 00:10:05
 
 #### filters.formatNumericDateUtc( [timestamp] )
+
+Just the digits from an ISO-8601 datetime, with milliseconds added, in GMT.
 
         filters.formatNumericDateUtc(1414627805981);
         // => "20141030001005.981"
@@ -314,10 +331,14 @@ are optimized to be esepcially fast for clustered timestamps, many close togethe
 
 #### filters.formatJsDateIsoString( [timestamp] )
 
+JavaScript `new Date().toISOString()` format, always GMT.
+
         filters.formatJsDateIsoString();
         // => "2019-02-03T19:41:04.461Z"
 
 #### filters.formatBasicDate( [timestamp] )
+
+The generic timestamp used by the BasicFilter, an SQL DATETIME with milliseconds, local timezone.
 
         filters.formatBasicDate();
         // => "2019-02-03 19:41:04.461"

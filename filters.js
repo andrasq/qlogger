@@ -24,7 +24,8 @@ BasicFilter.create = function create( ) {
 }
 
 module.exports.JsonFilter = require('./lib/filter-json.js');
-module.exports.BasicFilter = BasicFilter; //require('./lib/filter-basic.js').BasicFilter;
+module.exports.KubeFilter = require('./lib/filter-json.js').KubeFilter;
+module.exports.BasicFilter = BasicFilter;
 // filterBasic is legacy
 module.exports.filterBasic = module.exports.BasicFilter.create();
 
