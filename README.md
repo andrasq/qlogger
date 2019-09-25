@@ -18,7 +18,7 @@ let line fragments from one logger overwrite or interleave with line fragments o
 logger; each line is guaranteed to be logged in its entirety.
 
 If the optional dependency `fs-ext` is present, files writes will be mutexed to ensure that
-concurrent writes do not overwrite each other.
+concurrent writes will each be appended atomically.
 
 And it's nice and fast.  On my system I get 1450k 200 byte lines per second saved to a shared
 logfile under LOCK_EX mutex
