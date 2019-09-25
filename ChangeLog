@@ -1,6 +1,7 @@
 1.7.0
 
 - new filter KubeFilter
+- upgrade to qfputs 1.8.0 for node-v12
 
 1.6.0 2019-02-04
 

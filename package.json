@@ -12,7 +12,7 @@
   "readme": "see the README.md in the repo",
 
   "dependencies": {
-    "qfputs": "1.7.2"
+    "qfputs": "1.8.0"
   },
   "devDependencies": {
     "qnit": "0.25.1"
