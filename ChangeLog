@@ -1,3 +1,7 @@
+1.7.1
+
+- TRACE log level, more log level aliases
+
 1.7.0
 
 - new filter KubeFilter
