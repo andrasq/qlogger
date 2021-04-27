@@ -165,7 +165,7 @@ module.exports = {
 
         'should fetch the current timestamp with refresh': function(t) {
             var tbase = new timestamps.test.Timebase();
-            var stub = t.stub(tbase, 'refresh', function(){ this.timestamp = 12345; return true });
+            var stub = t.stub(tbase, 'refresh', function(){ this.timestamp = 12345 });
             t.equal(tbase.getTimestamp(), 12345);
             stub.restore();
             t.done();
