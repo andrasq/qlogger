@@ -1,13 +1,13 @@
 /**
  * basic logging filters
  *
- * Copyright (C) 2014,2019 Andras Radics
+ * Copyright (C) 2014-2021 Andras Radics
  * Licensed under the Apache License, Version 2.0
  *
  * 2014-10-29 - AR.
  */
 
-var QLogger = require('./lib/qlogger.js');
+var QLogger = require('./lib/qlogger');
 var timestamps = require('./lib/timestamps');
 
 // basic logging filter, adds a timestamp and the loglevel
@@ -15,6 +15,7 @@ var timestamps = require('./lib/timestamps');
 function BasicFilter( ) {
     this.filter = function filter(message, loglevel) {
         var timestring = timestamps.formatBasicDate();
+        // var timestring = timestamps.formatJsonDate();
         return timestring + " [" + QLogger.LEVELNAMES[loglevel] + "] " + message;
     }
 }
@@ -23,8 +24,9 @@ BasicFilter.create = function create( ) {
     return function(message, level) { return filter.filter(message, level) }
 }
 
-module.exports.JsonFilter = require('./lib/filter-json.js');
-module.exports.KubeFilter = require('./lib/filter-json.js').KubeFilter;
+module.exports.JsonFilter = require('./lib/filter-json');
+module.exports.KubeFilter = require('./lib/filter-json').KubeFilter;
+module.exports.PinoFilter = require('./lib/filter-json').PinoFilter;
 module.exports.BasicFilter = BasicFilter;
 // filterBasic is legacy
 module.exports.filterBasic = module.exports.BasicFilter.create();
@@ -35,6 +37,8 @@ module.exports.formatIsoDateUtc = timestamps.formatIsoDateUtc;
 module.exports.formatNumericDateUtc = timestamps.formatNumericDateUtc;
 module.exports.formatJsDateIsoString = timestamps.formatJsDateIsoString;
 module.exports.formatBasicDate = timestamps.formatBasicDate;
+module.exports.formatRawTimestamp = timestamps.formatRawTimestamp;
+module.exports.formatJsonDate = timestamps.formatJsonDate;
 
 module.exports.getTimestamp = timestamps.getTimestamp;
 module.exports.getTimestampAsync = timestamps.getTimestampAsync;

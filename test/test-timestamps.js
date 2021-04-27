@@ -99,6 +99,8 @@ module.exports = {
     'should format numeric date': function(t) {
         var msg = filters.formatNumericDateUtc(980271296123);
         assert.equal(msg, '20010123173456.123');
+        assert.equal(filters.formatNumericDateUtc(980271296124), '20010123173456.124');
+        assert.equal(filters.formatNumericDateUtc(980271297124), '20010123173457.124');
         setTimeout(function() {
             var t1 = filters.formatNumericDateUtc();
             t.ok(+t1 <= +filters.formatNumericDateUtc());
@@ -128,6 +130,24 @@ module.exports = {
             t.ok(new Date(filters.formatBasicDate()) <= new Date());
             t.done();
         })
+    },
+
+    'should format raw timestamp': function(t) {
+        t.equal(filters.formatRawTimestamp(1234), '1234');
+        t.equal(filters.formatRawTimestamp(980271296123), '980271296123');
+        var now = Date.now();
+        t.ok(filters.formatRawTimestamp() >= now - 2);
+        t.done();
+    },
+
+    'should format json timestamp': function(t) {
+        t.equal(filters.formatJsonDate(1234), '1970-01-01T00:00:01.234Z');
+        t.equal(filters.formatJsonDate(980271296123), '2001-01-23T17:34:56.123Z');
+        var now = new Date();
+        var ts = filters.formatJsonDate();
+        // allow for 2ms getTimestamp() inaccuracy
+        t.ok(new Date(ts) >= now - 2 && new Date(ts) <= new Date());
+        t.done();
     },
 
     'Timebase': {

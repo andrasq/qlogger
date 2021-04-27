@@ -288,6 +288,23 @@ Options:
 - `type` - log stream type, default `undefined`.  The type is included in every logline.
 - `timestamp` - function to compose the logged timestamp.  Default is `filters.formatJsDateIsoString`.
 
+#### filterPino = require('qlogger/filters').PinoFilter.create( options )
+
+Returns a function that formats log messages as newline terminated Pino compatible json strings
+with fields `level`, `time`, `pid`, `hostname`, `name` and either `msg` or the key-values from
+the logged hash.
+
+        const PinoFilter = require('qlogger/filters').PinoFilter;
+        const filter = PinoFilter.create({name: 'test', hostname: 'vm');
+        let str = filter({ a: 1, b: 2 });
+        // => {"level":30,"time":1619476931206,"pid":26804,"hostname":"vm","name":"test","a":1,"b":2}
+
+
+Options:
+- `name` - the name of the logger.  Default none.
+- `hostname` - the name of the server.  Default `os.hostname()`.
+- `pid` - the process id of the logging process.  Default `process.pid`.
+
 ### Timestamps
 
 `qlogger` exports its source of high-speed millisecond timestamps.  These timestamps
@@ -345,9 +362,10 @@ Just the digits from an ISO-8601 datetime, with milliseconds added, in GMT.
         filters.formatNumericDateUtc();
         // => "20190203194104.461"
 
-#### filters.formatJsDateIsoString( [timestamp] )
+#### filters.formatJsonDate( [timestamp] )
 
-JavaScript `new Date().toISOString()` format, always GMT.
+JavaScript `new Date().toISOString()` format, always GMT; same as `new Date().toJSON()`.
+Also available as `filters.formatJsDateIsoString`.
 
         filters.formatJsDateIsoString();
         // => "2019-02-03T19:41:04.461Z"
@@ -359,6 +377,9 @@ The generic timestamp used by the BasicFilter, an SQL DATETIME with milliseconds
         filters.formatBasicDate();
         // => "2019-02-03 19:41:04.461"
 
+#### filters.formatRawTimestamp( [timestamp] )
+
+Same as `String(new Date().getTime())`, but possibly faster.
 
 Structure
 ---------

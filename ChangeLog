@@ -1,3 +1,7 @@
+1.8.0
+
+- new filters.PinoFilter, filters.formatRawTimestamp, filters.formatJsonDate
+
 1.7.1
 
 - TRACE log level, more log level aliases
