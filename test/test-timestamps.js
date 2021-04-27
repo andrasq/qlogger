@@ -136,18 +136,22 @@ module.exports = {
         t.equal(filters.formatRawTimestamp(1234), '1234');
         t.equal(filters.formatRawTimestamp(980271296123), '980271296123');
         var now = Date.now();
-        t.ok(filters.formatRawTimestamp() >= now - 5);
-        t.done();
+        setTimeout(function() {
+            t.ok(filters.formatRawTimestamp() >= now);
+            t.done();
+        })
     },
 
     'should format json timestamp': function(t) {
         t.equal(filters.formatJsonDate(1234), '1970-01-01T00:00:01.234Z');
         t.equal(filters.formatJsonDate(980271296123), '2001-01-23T17:34:56.123Z');
         var now = new Date();
-        var ts = filters.formatJsonDate();
-        // allow for 5ms getTimestamp() inaccuracy
-        t.ok(new Date(ts) >= now - 5 && new Date(ts) <= new Date());
-        t.done();
+        setTimeout(function() {
+            var ts = filters.formatJsonDate();
+            t.ok(new Date(ts) >= now);
+            t.ok(new Date() >= new Date(ts));
+            t.done();
+        })
     },
 
     'Timebase': {
