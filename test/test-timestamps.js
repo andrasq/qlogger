@@ -136,7 +136,7 @@ module.exports = {
         t.equal(filters.formatRawTimestamp(1234), '1234');
         t.equal(filters.formatRawTimestamp(980271296123), '980271296123');
         var now = Date.now();
-        t.ok(filters.formatRawTimestamp() >= now - 2);
+        t.ok(filters.formatRawTimestamp() >= now - 5);
         t.done();
     },
 
@@ -145,8 +145,8 @@ module.exports = {
         t.equal(filters.formatJsonDate(980271296123), '2001-01-23T17:34:56.123Z');
         var now = new Date();
         var ts = filters.formatJsonDate();
-        // allow for 2ms getTimestamp() inaccuracy
-        t.ok(new Date(ts) >= now - 2 && new Date(ts) <= new Date());
+        // allow for 5ms getTimestamp() inaccuracy
+        t.ok(new Date(ts) >= now - 5 && new Date(ts) <= new Date());
         t.done();
     },
 
