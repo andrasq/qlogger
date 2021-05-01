@@ -10,7 +10,7 @@
   "engines": { "node": ">=0.8" },
   "keywords": [ "Andras", "quick", "fast", "logging", "newline", "delimited", "text", "data", "transport", "json", "bunyan", "winston" ],
   "readme": "see README.md",
-  "files": ["README.md", "filters.js", "lib", "index.js", "ChangeLog"],
+  "files": ["README.md", "index.js", "filters.js", "lib"],
 
   "dependencies": {
     "qfputs": "1.8.0"
@@ -20,8 +20,6 @@
   },
 
   "scripts": {
-    "prepublishOnly": "mv * .git/ar/ && cd .git/ar/ && mv [piLRfl]* ../.. && cd ../..",
-    "postpublish": "mv .git/ar/* .",
     "test": "env TZ=America/New_York qnit test",
     "coverage": "nyc --reporter lcov --reporter text npm test",
     "clean": "rm -rf .nyc_output coverage npm-debug.log"
