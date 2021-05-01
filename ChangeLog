@@ -1,3 +1,6 @@
+1.8.1
+- minor speedups
+
 1.8.0
 
 - new filters.PinoFilter, filters.formatRawTimestamp, filters.formatJsonDate
