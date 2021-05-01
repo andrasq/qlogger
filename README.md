@@ -474,6 +474,68 @@ mutex-controlled shared logfile.
         logger = new QLogger('info', QLogger.createWriter('file://app.log', 'a'));
 
 
+ChangeLog
+---------
+
+1.8.1 2021-05-01 - minor speedups, move ChangeLog into README
+
+1.8.0 - new `filters.PinoFilter`, `filters.formatRawTimestamp`, `filters.formatJsonDate`; use DateFormatterSeconds
+
+1.7.1 - `TRACE` log level, more log level aliases
+
+1.7.0 - new filter `KubeFilter`, upgrade to qfputs 1.8.0 for node-v12
+
+1.6.0 2019-02-04
+- new `formatJsDateIsoString` timestamp formatter
+- expose the `formatBasicDate` timestamp formatter
+- new fast built-in source of formatter timestamps
+- new faster optimized built-in DateFormatter
+- make all formatters instances of DateFormatter
+- make formatters default to current time, timestamps optional
+- expose the `BasicFilter` implementation class
+- expose a `create` method on the built-in filters
+- expose `filters.getTimestamp` and getTimestampAsync
+- new: skip the message if any filter returns `undefined` for it
+- fix: cast the message to String() if the filters don't
+- 100% test coverage
+- make `createWriter('tcp://')` to return `null` if no error not false.
+  Node v10 assert.ifError now treats `false` as error-y.
+- new `getWriters`, `getFilters` methods
+- new `removeWriter`, `removeFilter` methods
+
+1.5.2 2018-10-30 - use latest qnit 0.25.1
+
+1.5.0 2017-12-29
+- new `formatNumericDateUtc` timestamp formatter
+- upgrade to qfputs 1.7.1 to fix fs-ext install warnings
+- use latest qnit 0.19.0
+
+1.4.0 2017-08-17
+- support all syslog loglevels
+- upgrade to faster qfputs 1.7.0
+- upgrade to latest qnit 0.17.1
+
+Older
+- 1.3.12 2016-03-05 - pass level:false in the JsonFilter template to omit the loglevel
+- 1.3.11 2016-03-01 - use qfputs 1.2.7 for node v4 compatibility, test with qnit
+- 1.3.10 2016-02-17 - do not let QLogger be attached to global, and 'use strict'
+- 1.3.9  2015-04-22 - report errors on fflush(), bump to qfputs@1.0.14 for bugfix
+- 1.3.8  2015-04-22 - guard against missing message in filter-json
+- 1.3.7  2015-04-17 - bump to qfputs@1.0.12 for reader/writer race condition fixes
+- 1.3.6  2015-04-09 - make work with node-v0.8
+- 1.3.5  2015-04-09 - catch up changelog (fm 1.2.2), tune json-filter
+- 1.3.4  2015-01-01 - bugfix: bump to qfputs@1.0.10
+- 1.3.3  2014-12-26 - bugfix: bump to qfputs@1.0.9
+- 1.3.2  2014-12-24 - encoder: option to JsonFilter.makeFilter()
+- 1.3.1  2014-12-09 - benchmark.js speed test
+- 1.3.0  2014-12-09 - log() method
+- 1.2.2 - call fflush on writers, not sync
+- 1.2.1 - introduced warning() logging method
+- 1.2.0 - expose filterIsoDate and filterIsoDateUtc timestamp formatters
+- 1.1.0 - introduced filterBasic and JsonFilter
+- 1.0.0 - initial version with info/debug/error, createWriter() and loglevel()
+
+
 Related
 -------
 
