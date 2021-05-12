@@ -29,10 +29,9 @@ A slow logger can report on the data being processed.  A fast logger is a data
 streaming engine, and can itself process data.
 
         const qlogger = require('qlogger');
-        const filters = require('qlogger/filters');
 
         const logger = qlogger('info');
-        logger.addFilter(filters.BasicFilter.create());
+        logger.addFilter(qlogger.filters.BasicFilter.create());
         logger.addWriter(qlogger.createWriter('file:///var/log/myApp/app.log');
 
         logger.info('Hello, world.');
@@ -201,17 +200,17 @@ wtih `addFilter`.
 
 ### Built-In Filters
 
-#### filterBasic = require('qlogger/filters').BasicFilter.create()
+#### filterBasic = require('qlogger').filters.BasicFilter.create()
 
 Returns a `BasicFilter` function, which produces a plaintext logline with a human-readable
 timestamp and the logelevel.
 
-        var filter = require('qlogger/filters').BasicFilter.create();
+        var filter = qlogger.filters.BasicFilter.create();
         logger.addFilter(filter);
         logger.info("Hello, world.")
         // => "2014-10-19 01:23:45.678 [info] Hello, world.\n"
 
-#### filterJson = require('qlogger/filters').JsonFilter.create( template [,opts] )
+#### filterJson = require('qlogger').filters.JsonFilter.create( template [,opts] )
 
 `filterJson(message, level)` converts to a stringified json bundle with fields "time",
 "level" and possibly "message" (unless explicitly disabled by setting them to
@@ -234,7 +233,7 @@ To omit "time" or "level" from the logline, set them to `false` in the template.
 `message` cannot be disabled, since it is automatically set to the logged value
 when logging non-objects; is not used otherwise.
 
-        var JsonFilter = require('qlogger/filters').JsonFilter.create();
+        var JsonFilter = require('qlogger').filters.JsonFilter.create();
         var loglineTemplate = {
             // the template defines the basic set of fields to log
             // and the order they will appear in.  If logging objects,
@@ -267,9 +266,9 @@ Options:
 
 - `encode` - encoding function to use to serialize.  Default is `JSON.stringify`
 - `timestamp` - function to generate the timestamp value to include in the output,
-  eg `filters.formatJsDateIsoString`.  Default is `filters.getTimestamp`.
+  eg `qlogger.filters.formatJsDateIsoString`.  Default is `filters.getTimestamp`.
 
-#### filterKube = require('qlogger/filters').KubeFilter.create( options )
+#### filterKube = require('qlogger').filters.KubeFilter.create( options )
 
 Returns a function that formats log messages as newline terminated k8s (Kubernetes)
 compatible json strings, each entry with fields `time`, `type` and `message`.  Unlike
@@ -278,7 +277,7 @@ merged into the top-level json object.
 
 If `options` is a string, it will be interpreted as the type, as if `{ type: options }`.
 
-        const KubeFilter = require('qlogger/filters').KubeFilter;
+        const KubeFilter = require('qlogger').filters.KubeFilter;
         const filter = KubeFilter.create('test-stream');
         let str = filter({ a: 1, b: 2 });
         // => {"time":"2019-02-09T11:05:19.471Z","type":"test-stream","message":{"a":1,"b":2}}
@@ -288,13 +287,13 @@ Options:
 - `type` - log stream type, default `undefined`.  The type is included in every logline.
 - `timestamp` - function to compose the logged timestamp.  Default is `filters.formatJsDateIsoString`.
 
-#### filterPino = require('qlogger/filters').PinoFilter.create( options )
+#### filterPino = require('qlogger').filters.PinoFilter.create( options )
 
 Returns a function that formats log messages as newline terminated Pino compatible json strings
 with fields `level`, `time`, `pid`, `hostname`, `name` and either `msg` or the key-values from
 the logged hash.
 
-        const PinoFilter = require('qlogger/filters').PinoFilter;
+        const PinoFilter = require('qlogger').filters.PinoFilter;
         const filter = PinoFilter.create({name: 'test', hostname: 'vm');
         let str = filter({ a: 1, b: 2 });
         // => {"level":30,"time":1619476931206,"pid":26804,"hostname":"vm","name":"test","a":1,"b":2}
@@ -310,7 +309,8 @@ Options:
 `qlogger` exports its source of high-speed millisecond timestamps.  These timestamps
 are tuned for groups of reads close together.
 
-        const filters = require('qlogger/filters');
+        const qlogger = require('qlogger');
+        const filters = qlogger.filters;
 
 #### filters.getTimestamp( )
 
@@ -342,7 +342,7 @@ SQL ISO-8601 DATETIME, in 'YYYY-MM-DD hh:mm:ss' format, local timezone.
         var timestamp = Date.now();
         // => 1414627805981
 
-        var time = formatIsoDate(timestamp);
+        var time = filters.formatIsoDate(timestamp);
         // => 2014-10-29 20:10:05
 
 #### filters.formatIsoDateUtc( [timestamp] )
@@ -433,7 +433,7 @@ a reopen frequency of 0.05 seconds
 Log to stdout, formatting the log lines with the basic plaintext filter:
 
         qlogger = require('qlogger');
-        filters = require('qlogger/filters');
+        filters = require('qlogger').filters;
         logger = qlogger('info', process.stdout);
         logger.addFilter(filters.BasicFilter.create());
 
@@ -452,7 +452,7 @@ The above, step by step:
         logger = new QLogger();
         logger.loglevel('info');
         logger.addWriter(process.stdout);
-        BasicFilter = require('qlogger/filters').BasicFilter;
+        BasicFilter = require('qlogger').filters.BasicFilter;
         logger.addFilter(BasicFilter.create());
 
 Log to file using a write stream, formatting the log lines with a quick inline
@@ -477,7 +477,7 @@ mutex-controlled shared logfile.
 ChangeLog
 ---------
 
-- 1.8.2 2021-05-12 - set logging methods with `defineLogMethods`
+- 1.8.2 2021-05-12 - set logging methods with `defineLogMethods`, expose `qlogger.filters`
 - 1.8.1 2021-05-01 - minor speedups, move ChangeLog into README
 - 1.8.0 - new `filters.PinoFilter`, `filters.formatRawTimestamp`, `filters.formatJsonDate`; use DateFormatterSeconds
 - 1.7.1 - `TRACE` log level, more log level aliases
