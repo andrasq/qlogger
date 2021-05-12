@@ -477,13 +477,11 @@ mutex-controlled shared logfile.
 ChangeLog
 ---------
 
-1.8.1 2021-05-01 - minor speedups, move ChangeLog into README
-
-1.8.0 - new `filters.PinoFilter`, `filters.formatRawTimestamp`, `filters.formatJsonDate`; use DateFormatterSeconds
-
-1.7.1 - `TRACE` log level, more log level aliases
-
-1.7.0 - new filter `KubeFilter`, upgrade to qfputs 1.8.0 for node-v12
+- 1.8.2 2021-05-12 - set logging methods with `defineLogMethods`
+- 1.8.1 2021-05-01 - minor speedups, move ChangeLog into README
+- 1.8.0 - new `filters.PinoFilter`, `filters.formatRawTimestamp`, `filters.formatJsonDate`; use DateFormatterSeconds
+- 1.7.1 - `TRACE` log level, more log level aliases
+- 1.7.0 - new filter `KubeFilter`, upgrade to qfputs 1.8.0 for node-v12
 
 1.6.0 2019-02-04
 - new `formatJsDateIsoString` timestamp formatter
