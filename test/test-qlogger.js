@@ -7,6 +7,7 @@
 
 var fs = require('fs');
 var net = require('net');
+var util = require('util');
 var Stream = require('stream');
 var QLogger = require('../index');
 var filterBasic = require('../filters').filterBasic;
@@ -477,6 +478,28 @@ module.exports = {
         }
     },
 
+    'serializers': {
+        setUp: function(done) {
+            this.lines = [];
+            done();
+        },
+
+        'combine arguments': function(t) {
+            var self = this;
+            this.logger.addWriter({write: function(msg, cb) { self.lines.push(msg); cb(); }});
+            this.logger.setSerializer(util.format);
+
+            this.logger.info('Hello');
+            t.equal(this.lines.pop(), 'Hello\n');
+            this.logger.info('Hello', 'there');
+            t.equal(this.lines.pop(), 'Hello there\n');
+            this.logger.info('%s %d', 'Hello', 123, 4.5);
+            t.equal(this.lines.pop(), 'Hello 123 4.5\n');
+
+            t.done();
+        },
+    },
+
     'speed': {
         'log 100k lines with no-op writer': function(t) {
             this.logger.addWriter({write: function(data, cb){ cb(); }});
@@ -517,6 +540,24 @@ module.exports = {
             this.logger.addWriter(fs.createWriteStream('/dev/null', {flags: 'a'}));
             this.logger.addFilter(filterBasic);
             for (var i=0; i<10000; i++) this.logger.info("Hello, world.\n");
+            this.logger.fflush(function(){
+                t.done();
+            });
+        },
+
+        'log 100k lines with util.format serializer': function(t) {
+            this.logger.setSerializer(util.format);
+            for (var i=0; i<100000; i++) this.logger.info("Hello, %s.\n", "world");
+            this.logger.fflush(function(){
+                t.done();
+            });
+        },
+
+        'log 100k lines with JSON.stringify serializer': function(t) {
+            var line;
+            this.logger.setSerializer(function(info, msg) { return msg ? { info: info, msg: msg } : info });
+            this.logger.addFilter(function(msg) { return JSON.stringify(msg) });
+            for (var i=0; i<100000; i++) this.logger.info("Hello, %s.\n", "world");
             this.logger.fflush(function(){
                 t.done();
             });

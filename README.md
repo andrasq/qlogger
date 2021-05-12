@@ -147,6 +147,22 @@ Return the array of writers attached to this qlogger.
 Remove the writer object from this qlogger.  The `writerObject` should be the same as was
 added with `addWriter`.
 
+### setSerializer( serializerFunc( /* VARARGS */ ) )
+
+Define the method that the qlogger instance will use to combine log method arguments into a
+message string or message object.  Once combined, the message is processed by the filters.
+Filters transform a single argument, while a serializer combines many arguments into a
+single argument.  Calling setSerializer again overwrites the previous serializer.
+
+    var qlogger = require('qlogger');
+    var util = requir('util');
+
+    var log = qlogger('info', 'stdout://');
+    log.addFilter(qlogger.filters.BasicFilter.create());
+    log.setSerializer(util.format);
+    log.info("Happy %d-th birthday, %s!", 16, 'Susie');
+    // => "2021-05-12 11:22:33.456 [info] Happy 16-th birthday, Susie!\n"
+
 ### addFilter( filterFunction( message, loglevel ) )
 
 A filter is a function that modifies the message being logged before it is written.  It is
@@ -477,6 +493,7 @@ mutex-controlled shared logfile.
 ChangeLog
 ---------
 
+- 1.9.0 2021-05-12 - new `setSerializer` method
 - 1.8.2 2021-05-12 - set logging methods with `defineLogMethods`, expose `qlogger.filters`
 - 1.8.1 2021-05-01 - minor speedups, move ChangeLog into README
 - 1.8.0 - new `filters.PinoFilter`, `filters.formatRawTimestamp`, `filters.formatJsonDate`; use DateFormatterSeconds
