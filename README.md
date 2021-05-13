@@ -52,6 +52,8 @@ Loglevel can be specified as a string 'error', 'info' or 'debug'.  If omitted, i
 to 'info'.  Internally, loglevels are converted to the standard unix syslog(2) loglevels 3,
 6 and 7.  As of version v1.4.0, all `syslog` loglevels are recognized:  'emerg', 'alert',
 'crit', 'err', 'warning', 'notice', 'info' and 'debug', along with 'all' and 'none'.
+As of version 1.7.1 also 'trace', along with the nodjs aliases 'error' (err), 'warn' (warning)
+and 'panic' (emerg).
 
 The optional `writer` may be a writerObject (see addWriter below), or a writer specification
 string.  The latter will create one of the built-in writers using `QLogger.createWriter()`.
@@ -84,19 +86,31 @@ messages as if they were from debug()).  Multiple arguments are gathered into an
 array, and the filter is expected to convert them to a string.  (This last
 allows `printf`-like formatted output).
 
+#### panic( message )
+
+Log an emergency error message.  This level message is always logged unless the loglevel is 'none'.
+
 #### error( message )
 
-Log an error message.  Error messages will be logged by all loglevels,
-'error', 'info' and 'debug'.
+Log an error message.  Error messages will be logged by the loglevels
+'error', 'info', 'debug', 'trace' and 'all'.
 
 #### info( message )
 
-Log an informational message.  The logger must have loglevel 'info' or
+Log an informational message.  The logger must have loglevel 'info', 'warn' or
 'debug'.
+
+#### warn( message )
+
+Log a warning message.
 
 #### debug( message )
 
-Log a debug message.  The logger must have loglevel of 'debug'.
+Log a debug message.  The logger must have loglevel of 'debug', 'trace' or 'all'.
+
+#### trace( message )
+
+Log a trace message, lower in priority than debug.  The logger must have loglevel of 'trace' or 'all'.
 
 #### fflush( callback )
 
