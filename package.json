@@ -13,7 +13,7 @@
   "files": ["README.md", "index.js", "filters.js", "lib"],
 
   "dependencies": {
-    "qfputs": "1.8.0"
+    "qfputs": "1.8.2"
   },
   "devDependencies": {
     "qnit": "0.25.1"
