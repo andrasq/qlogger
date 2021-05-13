@@ -161,7 +161,7 @@ Return the array of writers attached to this qlogger.
 Remove the writer object from this qlogger.  The `writerObject` should be the same as was
 added with `addWriter`.
 
-### setSerializer( serializerFunc( /* VARARGS */ ) )
+### setSerializer( serializerFunc(...varargs) )
 
 Define the method that the qlogger instance will use to combine log method arguments into a
 message string or message object.  Once combined, the message is processed by the filters.
