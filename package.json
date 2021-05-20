@@ -1,6 +1,6 @@
 {
   "name": "qlogger",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "very fast easily customizable logger",
   "license": "Apache-2.0",
   "main": "index.js",
