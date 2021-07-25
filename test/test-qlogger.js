@@ -24,16 +24,20 @@ module.exports = {
         'should expose loglevel map class attribute': function(t) {
             t.ok(QLogger.LOGLEVELS);
             t.equal(3, QLogger.LOGLEVELS['error']);
+            t.equal(4, QLogger.LOGLEVELS['warn']);
             t.equal(6, QLogger.LOGLEVELS['info']);
             t.equal(7, QLogger.LOGLEVELS['debug']);
+            t.equal(8, QLogger.LOGLEVELS['trace']);
             t.done();
         },
 
         'should expose loglevel names inverse lookup map class attribute': function(t) {
             t.ok(QLogger.LEVELNAMES);
             t.equal('error', QLogger.LEVELNAMES[3]);
+            t.equal('warning', QLogger.LEVELNAMES[4]);
             t.equal('info', QLogger.LEVELNAMES[6]);
             t.equal('debug', QLogger.LEVELNAMES[7]);
+            t.equal('trace', QLogger.LEVELNAMES[8]);
             t.done();
         },
 

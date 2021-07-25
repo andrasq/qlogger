@@ -507,6 +507,7 @@ mutex-controlled shared logfile.
 ChangeLog
 ---------
 
+- 1.9.1 2021-07-24 - add missing `trace` method, fix `setSerializer` to return `this`
 - 1.9.0 2021-05-12 - new `setSerializer` method
 - 1.8.2 2021-05-12 - set logging methods with `defineLogMethods`, expose `qlogger.filters`
 - 1.8.1 2021-05-01 - minor speedups, move ChangeLog into README
