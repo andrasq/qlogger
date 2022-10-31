@@ -1,6 +1,6 @@
 qlogger
 =======
-[![Build Status](https://travis-ci.com/andrasq/qlogger.svg?branch=master)](https://travis-ci.com/andrasq/qlogger)
+[![Build Status](https://app.travis-ci.com/andrasq/qlogger.svg?branch=master)](https://app.travis-ci.com/github/andrasq/qlogger)
 [![Coverage Status](https://coveralls.io/repos/github/andrasq/qlogger/badge.svg?branch=master)](https://coveralls.io/github/andrasq/qlogger?branch=master)
 
 quick nodejs logging and newline delimited data transport
@@ -507,6 +507,7 @@ mutex-controlled shared logfile.
 ChangeLog
 ---------
 
+- 1.10.0 - make `qfputs` an optional dependency
 - 1.9.1 2021-07-24 - add missing `trace` method, fix `setSerializer` to return `this`
 - 1.9.0 2021-05-12 - new `setSerializer` method
 - 1.8.2 2021-05-12 - set logging methods with `defineLogMethods`, expose `qlogger.filters`

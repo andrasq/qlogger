@@ -327,6 +327,25 @@ module.exports = {
             t.done();
         },
 
+        'should throw if Fputs is needed but not available': function(t) {
+            t.disrequire('qfputs');
+            t.disrequire('../lib/qlogger');
+            // mockRequire mocks only with truthy values
+            t.mockRequire('qfputs', 1);
+            var QLogger = require('../lib/qlogger');
+
+            // does not throw if not needed: uses stdout
+            QLogger.createWriter('file://-');
+
+            // throws if needed: cannot create file writer
+            t.throws(function() { QLogger.createWriter('file://tmp/nodeunit.test.out') });
+
+            t.unmockRequire('qfputs');
+            t.disrequire('qfputs');
+            t.disrequire('../lib/qlogger');
+            t.done();
+        },
+
         'should write data to file:// writer': function(t) {
             var writer = QLogger.createWriter('file:///tmp/nodeunit.test.out');
             try { fs.unlinkSync('/tmp/nodeunit.test.out'); } catch (e) { }

@@ -1,6 +1,6 @@
 {
   "name": "qlogger",
-  "version": "1.9.1",
+  "version": "1.10.0",
   "description": "very fast easily customizable logger",
   "license": "Apache-2.0",
   "main": "index.js",
@@ -12,7 +12,8 @@
   "readme": "see README.md",
   "files": ["README.md", "index.js", "filters.js", "lib"],
 
-  "dependencies": {
+  "optionalDependencies": {
+    "fs-ext": "1.3.0",
     "qfputs": "1.8.2"
   },
   "devDependencies": {
