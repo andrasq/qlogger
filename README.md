@@ -1,6 +1,6 @@
 qlogger
 =======
-[![nodejs ci](https://github.com/andrasq/node-qlogger/actions/workflows/nodejs.yml/badge.svg)](https://github.com/andrasq/node-qlogger/actions/workflows/nodejs.yml)
+[![nodejs ci](https://github.com/andrasq/qlogger/actions/workflows/nodejs.yml/badge.svg)](https://github.com/andrasq/qlogger/actions/workflows/nodejs.yml)
 [![Coverage Status](https://coveralls.io/repos/github/andrasq/qlogger/badge.svg?branch=master)](https://coveralls.io/github/andrasq/qlogger?branch=master)
 
 quick nodejs logging and newline delimited data transport
