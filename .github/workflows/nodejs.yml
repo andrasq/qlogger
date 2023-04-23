@@ -7,7 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [ 0.8.x, 0.10.x, 6, 10, 12, 16, 5.8.0 ]
+        # AR: 0.8.28 fails because is unable to install the optional dependencies
+        # node: [ 0.8.x, 0.10.x, 6, 10, 12, 16, 5.8.0 ]
+        node: [ 0.10.x, 6, 10, 12, 16, 5.8.0 ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3

@@ -338,7 +338,7 @@ module.exports = {
             QLogger.createWriter('file://-');
 
             // throws if needed: cannot create file writer
-            t.throws(function() { QLogger.createWriter('file://tmp/nodeunit.test.out') });
+            t.throws(function() { QLogger.createWriter('file://tmp/nodeunit.test.out') }, /not available/);
 
             t.unmockRequire('qfputs');
             t.disrequire('qfputs');
