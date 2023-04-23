@@ -14,7 +14,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: npm install
-      - run: npm install -g qnit npm@2.15.0
+      # AR: github ci fails for node-v0.10.48 with "module not found"
+      # - run: npm install -g qnit npm@2.15.0
       - run: npm test
 
       - name: coverage
